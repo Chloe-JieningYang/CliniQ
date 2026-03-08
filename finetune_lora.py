@@ -11,7 +11,6 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
     TrainingArguments,
-    DataCollatorForLanguageModeling,
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
@@ -195,19 +194,23 @@ def main():
     
     # Tokenize and create labels (mask everything except answer part)
     def tokenize_and_mask(examples):
-        # Tokenize the text
+        # Tokenize the text (no padding here, let data collator handle it)
         tokenized = tokenizer(
             examples["text"],
             truncation=True,
             max_length=max_seq_length,
-            padding=False,
+            padding=False,  # No padding - data collator will handle it
         )
         
         # Create labels: mask everything except the answer part
         # Answer part starts after "<|start_header_id|>assistant<|end_header_id|>\n"
         labels = []
         for i, text in enumerate(examples["text"]):
-            # Find where answer starts
+            # Get the tokenized input_ids for this example
+            input_ids = tokenized["input_ids"][i]
+            input_length = len(input_ids)
+            
+            # Find where answer starts in the original text
             answer_start_marker = "<|start_header_id|>assistant<|end_header_id|>\n"
             answer_start_idx = text.find(answer_start_marker)
             
@@ -215,34 +218,26 @@ def main():
                 # Tokenize the part before answer (should be masked)
                 before_answer = text[:answer_start_idx + len(answer_start_marker)]
                 before_tokens = tokenizer.encode(before_answer, add_special_tokens=False)
-                
-                # Tokenize full text to get all tokens
-                full_tokens = tokenizer.encode(text, add_special_tokens=False)
+                before_length = len(before_tokens)
                 
                 # Create labels: -100 for masked parts, token_id for answer part
-                label = [-100] * len(full_tokens)
+                # Match the length of input_ids (which may be truncated)
+                label = [-100] * input_length
+                
                 # Only the answer part (after assistant header) should have labels
-                if len(before_tokens) < len(full_tokens):
-                    # Set labels for answer part (everything after assistant header)
-                    for j in range(len(before_tokens), len(full_tokens)):
-                        label[j] = full_tokens[j]
+                # Make sure we don't exceed input_length
+                answer_start_pos = min(before_length, input_length)
+                for j in range(answer_start_pos, input_length):
+                    # Use the actual token ID from input_ids
+                    label[j] = input_ids[j]
             else:
                 # Fallback: if format is wrong, mask everything
-                full_tokens = tokenizer.encode(text, add_special_tokens=False)
-                label = [-100] * len(full_tokens)
+                label = [-100] * input_length
             
-            # Truncate to match input_ids length
-            label = label[:len(tokenized["input_ids"][i])]
             labels.append(label)
         
-        # Pad labels to match input_ids length
-        max_len = max(len(ids) for ids in tokenized["input_ids"])
-        padded_labels = []
-        for label in labels:
-            padded = label + [-100] * (max_len - len(label))
-            padded_labels.append(padded[:max_len])
-        
-        tokenized["labels"] = padded_labels
+        # Set labels (no padding - data collator will handle it during batching)
+        tokenized["labels"] = labels
         return tokenized
     
     print("Tokenizing dataset and creating labels (masking question part, only answer will be trained)...")
@@ -299,8 +294,8 @@ def main():
     print("\nInitializing trainer...")
     # Important: We've already tokenized data and set labels manually
     # Labels with -100 will be ignored in loss calculation (only answer part will be trained)
-    # SFTTrainer will use the existing input_ids and labels if they're already in the dataset
-    # We still need processing_class for padding during batching
+    # SFTTrainer's data collator will handle padding during batching
+    # The labels will be padded to match input_ids by the collator
     trainer = SFTTrainer(
         model=model,
         train_dataset=train_dataset,  # Already tokenized with labels
@@ -319,8 +314,18 @@ def main():
     # ============ 9. Save Fine-tuned Model ============
     print("\nSaving model...")
     final_model_dir = os.path.join(output_dir, "final_model")
+    
+    # Save LoRA adapter (this saves only the adapter weights, not the full model)
     model.save_pretrained(final_model_dir)
     tokenizer.save_pretrained(final_model_dir)
+    
+    # Verify that adapter was saved
+    adapter_path = os.path.join(final_model_dir, "adapter_model.safetensors")
+    if os.path.exists(adapter_path):
+        adapter_size = os.path.getsize(adapter_path) / (1024 * 1024)  # MB
+        print(f"  ✓ LoRA adapter saved: {adapter_size:.2f} MB")
+    else:
+        print("  ⚠ Warning: adapter_model.safetensors not found!")
     
     # ============ 10. Training Summary ============
     print(f"\nTraining completed! Model saved to: {final_model_dir}")
