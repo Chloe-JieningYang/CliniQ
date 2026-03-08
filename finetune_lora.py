@@ -11,6 +11,7 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
     TrainingArguments,
+    DataCollatorForLanguageModeling,
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
@@ -45,27 +46,30 @@ def load_and_prepare_dataset(dataset_name="medalpaca/medical_meadow_mediqa", tok
 
 
 def formatting_func(examples):
-    """Convert medical Q&A data to fine-tuning format"""
+    """Convert medical Q&A data to Llama 3 chat format (compatible with 3.1 and 3.2)
+    Format: <|start_header_id|>user<|end_header_id|>\nquestion\n<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\nanswer\n<|eot_id|>
+    Only answer part will be used for loss calculation (via labels masking)
+    """
     output_texts = []
     for i in range(len(examples.get("instruction", []))):
         instruction = examples["instruction"][i] if "instruction" in examples else ""
         output = examples["output"][i] if "output" in examples else ""
         input_text = examples.get("input", [""] * len(examples["instruction"]))[i] if "input" in examples else ""
         
-        # Build medical Q&A format prompt
+        # Build question text (with context if available)
         if input_text:
-            text = f"""Below is a medical question and answer.
-
-Question: {instruction}
-Context: {input_text}
-
-Answer: {output}<|end_of_text|>"""
+            question = f"{instruction}\nContext: {input_text}"
         else:
-            text = f"""Below is a medical question and answer.
+            question = instruction
+        
+        # Use Llama 3 chat format (compatible with 3.1 and 3.2)
+        text = f"""<|start_header_id|>user<|end_header_id|>
+{question}
+<|eot_id|>
 
-Question: {instruction}
-
-Answer: {output}<|end_of_text|>"""
+<|start_header_id|>assistant<|end_header_id|>
+{output}
+<|eot_id|>"""
         
         output_texts.append(text)
     
@@ -74,7 +78,7 @@ Answer: {output}<|end_of_text|>"""
 
 def main():
     # ============ Configuration Parameters ============
-    model_id = "meta-llama/Llama-3.2-1B"
+    model_id = "meta-llama/Llama-3.1-8B-Instruct"
     dataset_name = "medalpaca/medical_meadow_mediqa"
     output_dir = "./medical_lora_output"
     max_seq_length = 512
@@ -94,7 +98,7 @@ def main():
         print("\nHow to get Token:")
         print("1. Visit https://huggingface.co/settings/tokens")
         print("2. Create a new token (requires 'Read' permission)")
-        print("3. Visit https://huggingface.co/meta-llama/Llama-3.2-1B and accept terms")
+        print("3. Visit https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct and accept terms")
         print("4. Add to .env file: HF_TOKEN=your_token_here")
         print("\nContinue? (If model is already cached locally, token may not be needed)")
         response = input("Continue? (y/n): ").strip().lower()
@@ -118,11 +122,12 @@ def main():
     lora_dropout = 0.05
     
     # Training parameters
+    # Note: 8B model is larger, may need smaller batch size if OOM occurs
     num_train_epochs = 3
-    per_device_train_batch_size = 4
-    gradient_accumulation_steps = 4 # effective batch size = per_device_train_batch_size * gradient_accumulation_steps
-    learning_rate = 2e-4 # learning rate
-    warmup_steps = 100 # warmup steps
+    per_device_train_batch_size = 2  # Reduced for 8B model (was 4 for 1B)
+    gradient_accumulation_steps = 8  # Increased to maintain effective batch size = 16
+    learning_rate = 2e-4  # learning rate
+    warmup_steps = 100  # warmup steps
     
     print("=" * 60)
     print("Medical Q&A LoRA Fine-tuning Pipeline")
@@ -181,17 +186,87 @@ def main():
     
     # ============ 5. Process Dataset ============
     print("\nProcessing dataset...")
-    # Format training dataset
+    # Format training dataset with Llama 3 chat format
     train_dataset = train_dataset.map(formatting_func, batched=True, remove_columns=train_dataset.column_names)
     
     # Format validation dataset if exists
     if eval_dataset is not None:
         eval_dataset = eval_dataset.map(formatting_func, batched=True, remove_columns=eval_dataset.column_names)
     
+    # Tokenize and create labels (mask everything except answer part)
+    def tokenize_and_mask(examples):
+        # Tokenize the text
+        tokenized = tokenizer(
+            examples["text"],
+            truncation=True,
+            max_length=max_seq_length,
+            padding=False,
+        )
+        
+        # Create labels: mask everything except the answer part
+        # Answer part starts after "<|start_header_id|>assistant<|end_header_id|>\n"
+        labels = []
+        for i, text in enumerate(examples["text"]):
+            # Find where answer starts
+            answer_start_marker = "<|start_header_id|>assistant<|end_header_id|>\n"
+            answer_start_idx = text.find(answer_start_marker)
+            
+            if answer_start_idx != -1:
+                # Tokenize the part before answer (should be masked)
+                before_answer = text[:answer_start_idx + len(answer_start_marker)]
+                before_tokens = tokenizer.encode(before_answer, add_special_tokens=False)
+                
+                # Tokenize full text to get all tokens
+                full_tokens = tokenizer.encode(text, add_special_tokens=False)
+                
+                # Create labels: -100 for masked parts, token_id for answer part
+                label = [-100] * len(full_tokens)
+                # Only the answer part (after assistant header) should have labels
+                if len(before_tokens) < len(full_tokens):
+                    # Set labels for answer part (everything after assistant header)
+                    for j in range(len(before_tokens), len(full_tokens)):
+                        label[j] = full_tokens[j]
+            else:
+                # Fallback: if format is wrong, mask everything
+                full_tokens = tokenizer.encode(text, add_special_tokens=False)
+                label = [-100] * len(full_tokens)
+            
+            # Truncate to match input_ids length
+            label = label[:len(tokenized["input_ids"][i])]
+            labels.append(label)
+        
+        # Pad labels to match input_ids length
+        max_len = max(len(ids) for ids in tokenized["input_ids"])
+        padded_labels = []
+        for label in labels:
+            padded = label + [-100] * (max_len - len(label))
+            padded_labels.append(padded[:max_len])
+        
+        tokenized["labels"] = padded_labels
+        return tokenized
+    
+    print("Tokenizing dataset and creating labels (masking question part, only answer will be trained)...")
+    train_dataset = train_dataset.map(
+        tokenize_and_mask,
+        batched=True,
+        remove_columns=["text"]
+    )
+    
+    if eval_dataset is not None:
+        eval_dataset = eval_dataset.map(
+            tokenize_and_mask,
+            batched=True,
+            remove_columns=["text"]
+        )
+    
     # Show processed sample
     if len(train_dataset) > 0:
         print("\nProcessed data sample:")
-        print(train_dataset[0]["text"][:200] + "...")
+        print(f"Input IDs length: {len(train_dataset[0]['input_ids'])}")
+        print(f"Labels length: {len(train_dataset[0]['labels'])}")
+        # Count how many tokens are not masked
+        non_masked = sum(1 for l in train_dataset[0]['labels'] if l != -100)
+        print(f"Non-masked tokens (answer part): {non_masked} out of {len(train_dataset[0]['labels'])}")
     
     # ============ 6. Training Arguments ============
     print("\nConfiguring training arguments...")
@@ -222,17 +297,17 @@ def main():
     
     # ============ 7. Initialize SFTTrainer ============
     print("\nInitializing trainer...")
-    # According to TRL documentation:
-    # - Use 'processing_class' instead of 'tokenizer'
-    # - 'formatting_func' is optional (we already formatted the data)
-    # - No 'max_seq_length' or 'packing' parameters
+    # Important: We've already tokenized data and set labels manually
+    # Labels with -100 will be ignored in loss calculation (only answer part will be trained)
+    # SFTTrainer will use the existing input_ids and labels if they're already in the dataset
+    # We still need processing_class for padding during batching
     trainer = SFTTrainer(
         model=model,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,  # Add validation dataset
+        train_dataset=train_dataset,  # Already tokenized with labels
+        eval_dataset=eval_dataset,  # Already tokenized with labels
         args=training_args,
-        processing_class=tokenizer,  # Use processing_class instead of tokenizer
-        # formatting_func is optional since we already formatted the data
+        processing_class=tokenizer,  # Needed for padding/collation during batching
+        # No formatting_func needed since data is already tokenized
     )
     
     # ============ 8. Start Fine-tuning ============
@@ -249,11 +324,30 @@ def main():
     
     # ============ 10. Training Summary ============
     print(f"\nTraining completed! Model saved to: {final_model_dir}")
+    
+    # Find actual TensorBoard log directory (may be in runs or logs)
     log_dir = os.path.join(output_dir, "logs")
-    print(f"TensorBoard logs saved to: {log_dir}")
-    print("\nTo view TensorBoard, run:")
-    print(f"  tensorboard --logdir {log_dir}")
-    print("Then open http://localhost:6006 in your browser")
+    runs_dir = os.path.join(output_dir, "runs")
+    
+    # Check which directory exists and has log files
+    actual_log_dir = None
+    if os.path.exists(runs_dir) and os.listdir(runs_dir):
+        # Find the most recent run directory
+        run_dirs = [d for d in os.listdir(runs_dir) if os.path.isdir(os.path.join(runs_dir, d))]
+        if run_dirs:
+            actual_log_dir = os.path.join(runs_dir, run_dirs[-1])  # Use most recent
+    elif os.path.exists(log_dir):
+        actual_log_dir = log_dir
+    
+    if actual_log_dir:
+        print(f"TensorBoard logs saved to: {actual_log_dir}")
+        print("\nTo view TensorBoard, run:")
+        print(f"  tensorboard --logdir {actual_log_dir}")
+        print("Or to view all runs:")
+        print(f"  tensorboard --logdir {output_dir}")
+        print("Then open http://localhost:6006 in your browser")
+    else:
+        print(f"TensorBoard logs directory: {log_dir} (check if logs were generated)")
     print("=" * 60)
 
 
