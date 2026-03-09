@@ -1,6 +1,6 @@
 # CliniQ
 
-Medical Q&A LLM Fine-tuning Project - Using LoRA to fine-tune Llama-3.2-1B model
+Medical Q&A LLM Fine-tuning Project - Using LoRA to fine-tune Llama model
 
 ## Project Overview
 
