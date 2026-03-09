@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LoRA fine-tuning for Llama-3.2-1B for medical Q&A
+LoRA fine-tuning for Llama-3.1-8B-Instruct for medical Q&A
 Using medalpaca/medical_meadow_mediqa dataset
 """
 
