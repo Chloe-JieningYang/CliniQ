@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LoRA fine-tuning for Llama-3.1-8B-Instruct for medical Q&A
+LoRA fine-tuning for Llama models for medical Q&A
 Using medalpaca/medical_meadow_mediqa dataset
 """
 
@@ -45,7 +45,7 @@ def load_and_prepare_dataset(dataset_name="medalpaca/medical_meadow_mediqa", tok
 
 
 def formatting_func(examples):
-    """Convert medical Q&A data to Llama 3 chat format (compatible with 3.1 and 3.2)
+    """Convert medical Q&A data to Llama 3 chat format
     Format: <|start_header_id|>user<|end_header_id|>\nquestion\n<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\nanswer\n<|eot_id|>
     Only answer part will be used for loss calculation (via labels masking)
     """
@@ -61,7 +61,7 @@ def formatting_func(examples):
         else:
             question = instruction
         
-        # Use Llama 3 chat format (compatible with 3.1 and 3.2)
+        # Use Llama 3 chat format
         text = f"""<|start_header_id|>user<|end_header_id|>
 {question}
 <|eot_id|>
@@ -97,7 +97,7 @@ def main():
         print("\nHow to get Token:")
         print("1. Visit https://huggingface.co/settings/tokens")
         print("2. Create a new token (requires 'Read' permission)")
-        print("3. Visit https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct and accept terms")
+        print(f"3. Visit https://huggingface.co/{model_id} and accept terms")
         print("4. Add to .env file: HF_TOKEN=your_token_here")
         print("\nContinue? (If model is already cached locally, token may not be needed)")
         response = input("Continue? (y/n): ").strip().lower()
@@ -121,10 +121,10 @@ def main():
     lora_dropout = 0.05
     
     # Training parameters
-    # Note: 8B model is larger, may need smaller batch size if OOM occurs
+    # Note: Adjust batch size based on model size and available GPU memory
     num_train_epochs = 3
-    per_device_train_batch_size = 2  # Reduced for 8B model (was 4 for 1B)
-    gradient_accumulation_steps = 8  # Increased to maintain effective batch size = 16
+    per_device_train_batch_size = 2  # Adjust based on model size and GPU memory
+    gradient_accumulation_steps = 8  # Effective batch size = per_device_train_batch_size * gradient_accumulation_steps
     learning_rate = 2e-4  # learning rate
     warmup_steps = 100  # warmup steps
     

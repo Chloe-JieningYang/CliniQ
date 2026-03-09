@@ -1,10 +1,10 @@
 # CliniQ
 
-Medical Q&A LLM Fine-tuning Project - Using LoRA to fine-tune Llama model
+Medical Q&A LLM Fine-tuning Project - Using LoRA to fine-tune Llama models
 
 ## Project Overview
 
-This project uses LoRA (Low-Rank Adaptation) technology to fine-tune Meta Llama-3.2-1B model specifically for medical Q&A tasks. The dataset used is `medalpaca/medical_meadow_mediqa`.
+This project uses LoRA (Low-Rank Adaptation) technology to fine-tune Llama models (e.g., Llama-3.1-8B-Instruct) specifically for medical Q&A tasks. The dataset used is `medalpaca/medical_meadow_mediqa`.
 
 ## Requirements
 
@@ -34,7 +34,7 @@ docker build -t cliniq-env .
    - Copy the generated token (format: `hf_xxxxxxxxxxxxx`)
 
 3. **Request Model Access**:
-   - Visit model page: https://huggingface.co/meta-llama/Llama-3.2-1B
+   - Visit the model page you want to use (e.g., https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
    - Click "Agree and access repository" to accept terms
    - Wait for approval (usually within minutes)
 
@@ -80,7 +80,7 @@ python finetune_lora.py
 ```
 
 The training process will:
-- Automatically download `meta-llama/Llama-3.2-1B` model
+- Automatically download the specified Llama model (configured in `finetune_lora.py`)
 - Load `medalpaca/medical_meadow_mediqa` dataset
 - Perform efficient fine-tuning using 4-bit quantization + LoRA
 - Save model to `./medical_lora_output/final_model`
@@ -112,7 +112,10 @@ You can modify the following parameters in `finetune_lora.py`:
 - Uses 8-bit optimizer (paged_adamw_8bit)
 - Uses LoRA to train only a small number of parameters
 
-On L4 GPU (24GB), fine-tuning a 1B model requires approximately 8-10GB VRAM.
+On L4 GPU (24GB), fine-tuning with 4-bit quantization typically requires:
+- Small models (1-3B): ~4-6GB VRAM
+- Medium models (7-13B): ~8-12GB VRAM
+- Large models (30B+): May require multiple GPUs or larger VRAM
 
 ## Project Structure
 
@@ -188,5 +191,5 @@ During training, loss metrics are automatically logged to TensorBoard. To visual
 
 - [PEFT Documentation](https://huggingface.co/docs/peft)
 - [TRL Documentation](https://huggingface.co/docs/trl)
-- [Llama 3.2 Model](https://huggingface.co/meta-llama/Llama-3.2-1B)
+- [Llama Models](https://huggingface.co/meta-llama)
 - [Medical Meadow Dataset](https://huggingface.co/datasets/medalpaca/medical_meadow_mediqa)
