@@ -2,7 +2,22 @@
 """
 Evaluate a Hugging Face causal LM on MediQA val set or PubMedQA (long_answer) for generalization.
 Outputs BERTScore, BLEU, ROUGE and saves to eval/eval_results_{model_name}_{dataset}.json.
-Supports --dataset mediqa (default) or pubmedqa; PubMedQA uses a subset (default 500 samples).
+Supports --dataset mediqa (default) or pubmedqa; PubMedQA uses a subset (default 200 samples).
+
+Usage summary: test different HF models on MediQA (10% val) and PubMedQA (200 samples).
+
+  # MediQA: same 10% val split as training (no --max_eval_samples = use all val samples)
+  python eval/run_hf_model_eval.py --model_id <hf_model_id> [--load_in_4bit]
+  python eval/run_hf_model_eval.py --model_id meta-llama/Llama-3.1-8B-Instruct --load_in_4bit
+  python eval/run_hf_model_eval.py --model_id medical_lora_output/final_model --peft
+
+  # PubMedQA: 200 samples for generalization (long_answer as reference)
+  python eval/run_hf_model_eval.py --model_id <hf_model_id> --dataset pubmedqa [--load_in_4bit]
+  python eval/run_hf_model_eval.py --model_id meta-llama/Llama-3.1-8B-Instruct --dataset pubmedqa --load_in_4bit
+  python eval/run_hf_model_eval.py --model_id medical_lora_output/final_model --dataset pubmedqa --peft
+
+  # Optional: --max_eval_samples N to cap MediQA; PubMedQA default is 200
+  # Optional: --use_cache to skip generation and only recompute metrics
 """
 
 import json
@@ -24,7 +39,7 @@ EVAL_DIR = os.path.join(ROOT, "eval")
 MEDIQA_NAME = "medalpaca/medical_meadow_mediqa"
 PUBMEDQA_NAME = "qiaojin/PubMedQA"
 PUBMEDQA_CONFIG = "pqa_labeled"
-PUBMEDQA_DEFAULT_MAX = 500  # subset for PubMedQA (pqa_labeled has ~1k)
+PUBMEDQA_DEFAULT_MAX = 200  # subset for PubMedQA (pqa_labeled has ~1k)
 VAL_SPLIT = 0.1
 SEED = 42
 
