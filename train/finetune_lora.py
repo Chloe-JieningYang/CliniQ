@@ -4,6 +4,7 @@ LoRA fine-tuning for Llama models for medical Q&A
 Using medalpaca/medical_meadow_mediqa dataset
 """
 
+import os
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -14,12 +15,12 @@ from transformers import (
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
-import os
 from huggingface_hub import login
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Project root (parent of train/)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(ROOT, ".env"))
 
 
 def load_and_prepare_dataset(dataset_name="medalpaca/medical_meadow_mediqa", token=None, val_split=0.1):
@@ -79,7 +80,7 @@ def main():
     # ============ Configuration Parameters ============
     model_id = "meta-llama/Llama-3.1-8B-Instruct"
     dataset_name = "medalpaca/medical_meadow_mediqa"
-    output_dir = "./medical_lora_output"
+    output_dir = os.path.join(ROOT, "medical_lora_output")
     max_seq_length = 512
     val_split = 0.1  # 10% for validation
     

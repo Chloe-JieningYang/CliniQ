@@ -73,31 +73,41 @@ docker run --gpus all -it --rm \
 
 ### 5. Run Fine-tuning
 
-Inside the container, execute:
+Inside the container (from project root `/app`), execute:
 
 ```bash
-python finetune_lora.py
+python train/finetune_lora.py
 ```
 
 The training process will:
-- Automatically download the specified Llama model (configured in `finetune_lora.py`)
+- Automatically download the specified Llama model (configured in `train/finetune_lora.py`)
 - Load `medalpaca/medical_meadow_mediqa` dataset
 - Perform efficient fine-tuning using 4-bit quantization + LoRA
-- Save model to `./medical_lora_output/final_model`
+- Save model to `medical_lora_output/final_model` (at project root)
 
 ### 6. Inference with Fine-tuned Model
 
 ```bash
-python inference.py [model_path]
+python eval/inference.py [model_path]
 ```
 
-If no path is specified, defaults to `./medical_lora_output/final_model`
+If no path is specified, defaults to `medical_lora_output/final_model` (relative to project root).
+
+### 7. Evaluation with BERTScore
+
+On the same validation split used in training, generate answers and compute BERTScore (precision, recall, F1):
+
+```bash
+python eval/evaluate.py [--model_path medical_lora_output/final_model]
+```
+
+Optional: `--max_eval_samples 200` to cap samples for a quick run; `--bertscore_model microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext` for a medical BERT backend.
 
 ## Configuration
 
 ### Training Parameters
 
-You can modify the following parameters in `finetune_lora.py`:
+You can modify the following parameters in `train/finetune_lora.py`:
 
 - `lora_r`: LoRA rank (default: 8)
 - `lora_alpha`: LoRA scaling factor (default: 16)
@@ -122,12 +132,17 @@ On L4 GPU (24GB), fine-tuning with 4-bit quantization typically requires:
 ```
 cliniQ/
 ├── Dockerfile              # Docker environment configuration
-├── finetune_lora.py        # LoRA fine-tuning main script
-├── inference.py            # Inference script
+├── requirements.txt        # Python dependencies
 ├── README.md               # Project documentation
 ├── .env                    # Environment variables (create from .env.example)
 ├── .env.example            # Example environment file template
-└── medical_lora_output/    # Training output directory (generated after training)
+├── train/                  # Training scripts
+│   └── finetune_lora.py    # LoRA fine-tuning main script
+├── eval/                   # Evaluation & inference scripts
+│   ├── inference.py       # Inference script
+│   ├── evaluate.py        # BERTScore evaluation on validation set
+│   └── test_model.py       # Quick test with sample questions
+└── medical_lora_output/    # Training output (at project root, generated after training)
     └── final_model/        # Final model save location
 ```
 
@@ -143,7 +158,7 @@ cliniQ/
 
 2. **Dataset Format**: `medical_meadow_mediqa` dataset should contain `instruction` and `output` fields
 
-3. **Model Saving**: After training completes, model is saved in `./medical_lora_output/final_model/`, including:
+3. **Model Saving**: After training completes, model is saved in `medical_lora_output/final_model/` (at project root), including:
    - LoRA adapter weights
    - Tokenizer files
    - Configuration files

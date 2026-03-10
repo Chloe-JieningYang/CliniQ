@@ -28,5 +28,8 @@ COPY . /app
 # Verify installation (optional, for debugging)
 RUN python -c "import torch; print(torch.__version__); import transformers; print(transformers.__version__); import trl; print(trl.__version__)"
 
-# Default startup command (modify according to actual script)
-# CMD ["python", "your_finetune_script.py"]
+# Run from project root (/app). Examples:
+#   python train/finetune_lora.py
+#   python eval/inference.py
+#   python eval/evaluate.py
+# CMD ["python", "train/finetune_lora.py"]

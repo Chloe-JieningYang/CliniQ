@@ -3,13 +3,20 @@
 Medical Q&A inference using fine-tuned LoRA model
 """
 
+import os
 import torch
 from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 
+# Project root (parent of eval/)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_MODEL_PATH = os.path.join(ROOT, "medical_lora_output", "final_model")
 
-def load_model(model_path="./medical_lora_output/final_model"):
+
+def load_model(model_path=None):
     """Load fine-tuned model"""
+    if model_path is None:
+        model_path = DEFAULT_MODEL_PATH
     print(f"Loading model: {model_path}")
     
     model = AutoPeftModelForCausalLM.from_pretrained(
@@ -60,7 +67,7 @@ def generate_answer(model, tokenizer, question, context=None, max_new_tokens=256
             eot_token_id = eot_token_id[0]  # Get the first token ID
         else:
             eot_token_id = None
-    except:
+    except Exception:
         eot_token_id = None
     
     eos_token_id = tokenizer.eos_token_id
@@ -118,7 +125,7 @@ def main():
     import sys
     
     # Model path
-    model_path = sys.argv[1] if len(sys.argv) > 1 else "./medical_lora_output/final_model"
+    model_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MODEL_PATH
     
     # Load model
     model, tokenizer = load_model(model_path)
