@@ -13,17 +13,17 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 # Set working directory
 WORKDIR /app
 
-# Copy project files to container
-COPY . /app
+# Copy requirements first for better layer caching
+COPY requirements.txt /app/requirements.txt
 
 # Install PyTorch first (CUDA 12.1 version)
 RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# Install Hugging Face libraries and TRL
-RUN pip install --no-cache-dir transformers datasets accelerate trl peft bitsandbytes huggingface_hub python-dotenv tensorboard
+# Install project dependencies from requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Optional: Install Jupyter (if notebook support is needed)
-RUN pip install --no-cache-dir jupyter
+# Copy rest of project files
+COPY . /app
 
 # Verify installation (optional, for debugging)
 RUN python -c "import torch; print(torch.__version__); import transformers; print(transformers.__version__); import trl; print(trl.__version__)"

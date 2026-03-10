@@ -1,0 +1,18 @@
+# Hugging Face & training
+transformers
+datasets
+accelerate
+trl
+peft
+bitsandbytes
+huggingface_hub
+
+# Config & logging
+python-dotenv
+tensorboard
+
+# Evaluation
+bert-score
+
+# Optional: Jupyter
+jupyter
