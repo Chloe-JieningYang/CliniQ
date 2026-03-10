@@ -31,5 +31,5 @@ RUN python -c "import torch; print(torch.__version__); import transformers; prin
 # Run from project root (/app). Examples:
 #   python train/finetune_lora.py
 #   python eval/inference.py
-#   python eval/evaluate.py
+#   python eval/run_hf_model_eval.py --model_id <hf_model_id> [--peft] [--load_in_4bit]
 # CMD ["python", "train/finetune_lora.py"]

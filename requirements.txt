@@ -13,6 +13,8 @@ tensorboard
 
 # Evaluation
 bert-score
+sacrebleu
+rouge-score
 
 # Optional: Jupyter
 jupyter

@@ -93,15 +93,19 @@ python eval/inference.py [model_path]
 
 If no path is specified, defaults to `medical_lora_output/final_model` (relative to project root).
 
-### 7. Evaluation with BERTScore
+### 7. Evaluation (BERTScore, BLEU, ROUGE)
 
-On the same validation split used in training, generate answers and compute BERTScore (precision, recall, F1):
+Use `eval/run_hf_model_eval.py` on the same validation split as training. Supports any Hugging Face model or local LoRA checkpoint:
 
 ```bash
-python eval/evaluate.py [--model_path medical_lora_output/final_model]
+# Hugging Face base model (e.g. 4-bit to save VRAM)
+python eval/run_hf_model_eval.py --model_id meta-llama/Llama-3.1-8B-Instruct --load_in_4bit
+
+# Local fine-tuned LoRA model
+python eval/run_hf_model_eval.py --model_id medical_lora_output/final_model --peft
 ```
 
-Optional: `--max_eval_samples 200` to cap samples for a quick run; `--bertscore_model microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext` for a medical BERT backend.
+Optional: `--max_eval_samples 200` for a quick run; `--use_cache` to skip generation and only recompute metrics. Results are saved under `eval/eval_results_{model_name}.json`.
 
 ## Configuration
 
@@ -140,7 +144,7 @@ cliniQ/
 │   └── finetune_lora.py    # LoRA fine-tuning main script
 ├── eval/                   # Evaluation & inference scripts
 │   ├── inference.py       # Inference script
-│   ├── evaluate.py        # BERTScore evaluation on validation set
+│   ├── run_hf_model_eval.py  # BERTScore/BLEU/ROUGE evaluation (HF or local model)
 │   └── test_model.py       # Quick test with sample questions
 └── medical_lora_output/    # Training output (at project root, generated after training)
     └── final_model/        # Final model save location

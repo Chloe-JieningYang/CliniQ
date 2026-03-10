@@ -19,9 +19,10 @@ def load_model(model_path=None):
         model_path = DEFAULT_MODEL_PATH
     print(f"Loading model: {model_path}")
     
+    # Use device_map="cuda:0" to avoid accelerate get_balanced_memory bug (unhashable set) with device_map="auto"
     model = AutoPeftModelForCausalLM.from_pretrained(
         model_path,
-        device_map="auto",
+        device_map="cuda:0",
         torch_dtype=torch.bfloat16,
         trust_remote_code=True,
     )
