@@ -181,6 +181,7 @@ def main():
     p.add_argument("--max_eval_samples", type=int, default=None, help="Cap samples (default: all for mediqa, %d for pubmedqa)" % PUBMEDQA_DEFAULT_MAX)
     p.add_argument("--max_new_tokens", type=int, default=256)
     p.add_argument("--temperature", type=float, default=0.1)
+    p.add_argument("--prompt", type=str, default=None, help="Optional JSON prompt config with 'primer' field to prepend to question (e.g. prompt/medalpaca_newprompt.json)")
     p.add_argument("--use_cache", action="store_true", help="Load predictions from cache, only recompute metrics")
     args = p.parse_args()
 
@@ -190,6 +191,23 @@ def main():
     if not hf_token and ("meta-llama" in model_id or "llama" in model_id.lower()):
         print("Set HF_TOKEN or HUGGING_FACE_HUB_TOKEN for gated models.")
         sys.exit(1)
+
+    # Optional external prompt config (e.g. medAlpaca-style JSON with 'primer')
+    primer = None
+    if args.prompt:
+        prompt_path = args.prompt
+        if not os.path.isabs(prompt_path):
+            prompt_path = os.path.join(ROOT, prompt_path)
+        try:
+            with open(prompt_path, "r", encoding="utf-8") as pf:
+                prompt_cfg = json.load(pf)
+            primer_val = prompt_cfg.get("primer", "")
+            primer = primer_val.strip() or None
+            if primer:
+                print(f"Loaded primer from {prompt_path} (length={len(primer)})")
+        except Exception as e:
+            print(f"Warning: failed to load prompt config '{prompt_path}': {e}")
+            primer = None
 
     name_slug = sanitize_model_name(model_id)
     os.makedirs(EVAL_DIR, exist_ok=True)
@@ -267,6 +285,9 @@ def main():
             question = str(question).strip()
             context = str(context).strip() if context else ""
             ref = str(ref).strip()
+            if primer:
+                # Prepend primer text to question for medAlpaca-style prompting
+                question = f"{primer}\n\n{question}" if question else primer
             pred = generate_answer(
                 model, tokenizer, question, context=context or None,
                 max_new_tokens=args.max_new_tokens, temperature=args.temperature, top_p=0.95,
