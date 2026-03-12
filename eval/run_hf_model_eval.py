@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Evaluate a Hugging Face causal LM on MediQA val set or PubMedQA (long_answer) for generalization.
-Outputs BERTScore, BLEU, ROUGE and saves to eval/eval_results_{model_name}_{dataset}.json.
+Outputs BERTScore, BLEU, ROUGE and saves to results/eval_results_{model_name}_{dataset}.json.
 Supports --dataset mediqa (default) or pubmedqa; PubMedQA uses a subset (default 200 samples).
 
 Usage summary: test different HF models on MediQA (10% val) and PubMedQA (200 samples).
@@ -36,6 +36,7 @@ except ImportError:
     pass
 
 EVAL_DIR = os.path.join(ROOT, "eval")
+RESULTS_DIR = os.path.join(ROOT, "results")
 MEDIQA_NAME = "medalpaca/medical_meadow_mediqa"
 PUBMEDQA_NAME = "qiaojin/PubMedQA"
 PUBMEDQA_CONFIG = "pqa_labeled"
@@ -192,8 +193,9 @@ def main():
 
     name_slug = sanitize_model_name(model_id)
     os.makedirs(EVAL_DIR, exist_ok=True)
+    os.makedirs(RESULTS_DIR, exist_ok=True)
     cache_path = os.path.join(EVAL_DIR, f".cache_hf_{name_slug}_{dataset_kind}.json")
-    out_path = os.path.join(EVAL_DIR, f"eval_results_{name_slug}_{dataset_kind}.json")
+    out_path = os.path.join(RESULTS_DIR, f"eval_results_{name_slug}_{dataset_kind}.json")
 
     if args.use_cache and os.path.isfile(cache_path):
         with open(cache_path, "r", encoding="utf-8") as f:
