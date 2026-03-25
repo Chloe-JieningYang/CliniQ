@@ -1,11 +1,14 @@
+# PyTorch (trl>=0.20 requires torch>=2.6 for FSDPModule)
+torch>=2.6.0
+
 # Hugging Face & training
-transformers
-datasets
-accelerate
-trl
-peft
-bitsandbytes
-huggingface_hub
+transformers>=5.0.0,<6.0.0
+datasets>=4.0.0,<5.0.0
+accelerate>=1.4.0,<2.0.0
+trl>=0.29.0,<0.30.0
+peft>=0.18.0,<0.19.0
+bitsandbytes>=0.49.0
+huggingface_hub>=1.0.0
 
 # Config & logging
 python-dotenv
@@ -18,3 +21,6 @@ rouge-score
 
 # Optional: Jupyter
 jupyter
+
+# CLI
+fire

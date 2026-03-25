@@ -36,3 +36,5 @@ logs/
 # Dataset cache
 .cache/
 .huggingface/
+
+sft_adaptor/
