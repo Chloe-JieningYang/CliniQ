@@ -1,6 +1,6 @@
 ## Prepare training data for DPO
 
-Generate rule-based pairs:
+<!-- Generate rule-based pairs:
 
 ```bash
 python prepare_train_data.py \
@@ -30,6 +30,18 @@ python prepare_train_data.py \
     --output_path ./train_set/dpo_pairs_llama3_rejected.json \
     --model_path "./sft_model" \
     --max_samples 5000 
+``` -->
+
+Get the raw data:
+
+```bash
+python get_train_dataset.py
+```
+
+Process data to DPO format:
+
+```bash
+python prepare_train_data.py
 ```
 
 ## Train DPO
