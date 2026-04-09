@@ -43,6 +43,13 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
 )
+
+import torch.distributed._composable.fsdp
+# Manually inject the missing class into the namespace trl expects
+import torch.distributed.fsdp
+if not hasattr(torch.distributed.fsdp, "FSDPModule"):
+    from torch.distributed._composable.fsdp import FSDPModule
+    torch.distributed.fsdp.FSDPModule = FSDPModule
 from trl import DPOConfig, DPOTrainer
 
 
@@ -74,19 +81,8 @@ def build_prompt(instruction: str, input_text: str = "") -> str:
 
 
 def preprocess_dpo(example: dict) -> dict:
-    """Convert medAlpaca-style records into TRL DPOTrainer format.
-
-    TRL DPOTrainer expects three keys:
-        prompt   – the shared context / question
-        chosen   – the preferred completion
-        rejected – the dispreferred completion
-    """
-    prompt = build_prompt(
-        instruction=example.get("instruction", ""),
-        input_text=example.get("input", ""),
-    )
     return {
-        "prompt": prompt,
+        "prompt": example["prompt"], 
         "chosen": example["chosen"],
         "rejected": example["rejected"],
     }
@@ -271,7 +267,8 @@ def main(
         save_total_limit=save_total_limit,
         load_best_model_at_end=(eval_dataset is not None),
         metric_for_best_model="eval_loss" if eval_dataset else None,
-        report_to="wandb" if use_wandb else "none",
+        report_to=["tensorboard", "wandb"] if use_wandb else ["tensorboard"],
+        logging_dir=f"{output_dir}/logs",
         run_name=wandb_run_name if use_wandb else None,
         remove_unused_columns=False,
         ddp_find_unused_parameters=False if ddp else None,

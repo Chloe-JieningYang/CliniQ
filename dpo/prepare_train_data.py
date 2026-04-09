@@ -1,5 +1,17 @@
 import json
 from sentence_transformers import SentenceTransformer, util
+from datasets import load_dataset
+
+def fetch_medical_meadow():
+    print("Fetching Technical Wikidoc dataset...")
+    # 1. Technical/Professional dataset
+    tech_ds = load_dataset("medalpaca/medical_meadow_wikidoc", split="train")
+    
+    print("Fetching Patient Information dataset...")
+    # 2. Patient-friendly dataset
+    patient_ds = load_dataset("medalpaca/medical_meadow_wikidoc_patient_information", split="train")
+    
+    return tech_ds, patient_ds
 
 # --- NEW UTILITY FUNCTIONS ---
 clinical_terms = [
@@ -97,4 +109,13 @@ def create_dual_tone_dpo(tech_json_path, patient_json_path, output_path, thresho
     print(f"Total DPO samples: {len(dpo_dataset)}")
     print(f"Skipped (Similarity): {skipped_count} | Filtered (Quality): {filtered_count}")
 
-create_dual_tone_dpo('./train_set/technical_data.jsonl', './train_set/patient_data.jsonl', './train_set/dpo_train_data.jsonl', threshold=0.83)
+
+tech_data, patient_data = fetch_medical_meadow()
+tech_data.to_json("./train_set/technical_data.jsonl")
+patient_data.to_json("./train_set/patient_data.jsonl")
+
+print(f"\nSuccess!")
+print(f"Technical samples: {len(tech_data)}")
+print(f"Patient samples: {len(patient_data)}")
+
+create_dual_tone_dpo('./train_set/technical_data.jsonl', './train_set/patient_data.jsonl', './train_set/dpo_train_data.jsonl', threshold=0.75)

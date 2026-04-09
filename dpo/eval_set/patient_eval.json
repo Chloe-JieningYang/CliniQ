@@ -1,0 +1,502 @@
+[
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Allergy?",
+        "reference": "Allergy symptoms vary, but may include:\nBreathing problems (coughing, shortness of breath) Burning, tearing, or itchy eyes Conjunctivitis (red, swollen eyes) Coughing Diarrhea Headache Hives Itching of the nose, mouth, throat, skin, or any other area Runny nose Skin rashes Stomach cramps Vomiting Wheezing\nWhat part of the body is contacted by the allergen plays a role in the symptoms you develop. For example:\nAllergens that are breathed in often cause a stuffy nose, itchy nose and throat, mucus production, cough, or wheezing. Allergens that touch the eyes may cause itchy, watery, red, swollen eyes. Eating something you are allergic to can cause nausea, vomiting, abdominal pain, cramping, diarrhea, or a severe, life-threatening reaction. Allergens that touch the skin can cause a skin rash, hives, itching, blisters, or even skin peeling. Drug allergies usually involve the whole body and can lead to a variety of symptoms."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Allergy?",
+        "reference": "The immune system normally protects the body against harmful substances, such as bacteria and viruses. It also reacts to foreign substances called allergens, which are generally harmless and in most people do not cause a problem.But in a person with allergies, the immune response is oversensitive. When it recognizes an allergen, it releases chemicals such as histamines. which fight off the allergen. This causes itching, swelling, mucus production, muscle spasms, hives, rashes, and other symptoms, which vary from person to person.\nCommon allergens include pollen, mold, pet dander, and dust. Food and drug allergies are common. Allergic reactions can also be caused by insect bites, jewelry, cosmetics, spices, and other substances.Some people have allergy-like reactions to hot or cold temperatures, sunlight, or other environmental triggers.\nSometimes, friction (rubbing or roughly stroking the skin) will cause symptoms.A specific allergy is not usually passed down through families (inherited). However, if both your parents have allergies, you are likely to have allergies. The chance is greater if your mother has allergies.\nAllergies may make certain medical conditions such as sinus problems, eczema, and asthma worse.Allergies are relatively common. Both genetics and environmental factors play a role."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Allergy ?",
+        "reference": "Call for an appointment with your health care provider if:\nSevere symptoms of allergy occur. Treatment for allergies no longer works."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Allergy  (Outlook/Prognosis)?",
+        "reference": "Most allergies can be easily treated with medication. Some children may outgrow an allergy. This is particularly true of food allergies. However, as a general rule, once a substance has triggered an allergic reaction, it continues to affect the person.\nAllergy shots are most effective when used to treat those with hay fever symptoms and severe insect sting allergies. They are not used to treat food allergies because of the danger of a severe reaction. Allergy shots may require years of treatment, but they work in most cases. However, they may cause uncomfortable side effects (such as hives and rash) and dangerous outcomes (such as anaphylaxis)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Anaphylaxis?",
+        "reference": "Symptoms develop rapidly, often within seconds or minutes. They may include the following:\nAbdominal pain or cramping Abnormal (high-pitched) breathing sounds Anxiety Confusion Cough Diarrhea Difficulty breathing Difficulty swallowing Fainting, light-headedness, dizziness Hives, itchiness Nasal congestion Nausea, vomiting Palpitations Skin redness Slurred speech Wheezing"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Anaphylaxis?",
+        "reference": "Anaphylaxis is a severe, whole-body allergic reaction to a chemical that has become an allergen. After being exposed to a substance such as bee sting venom, the person's immune system becomes sensitized to it. On a later exposure to that allergen, an allergic reaction may occur. This reaction happens quickly after the exposure, is severe, and involves the whole body.\nTissues in different parts of the body release histamine and other substances. This causes the airways to tighten and leads to other symptoms.\nSome drugs (morphine, x-ray dye, and others) may cause an anaphylactic-like reaction (anaphylactoid reaction) when people are first exposed to them. Aspirin may also cause a reaction. These reactions are not the same as the immune system response that occurs with \"true\" anaphylaxis. However, the symptoms, risk for complications, and treatment are the same for both types of reactions.\nAnaphylaxis can occur in response to any allergen. Common causes include:\nDrug allergies Food allergies Insect bites/stings\nPollens and other inhaled allergens rarely cause anaphylaxis. Some people have an anaphylactic reaction with no known cause.\nAnaphylaxis is life-threatening and can occur at any time. Risks include a history of any type of allergic reaction."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Anaphylaxis ?",
+        "reference": "Call 911 if you develop severe symptoms of anaphylaxis. If you are with another person, he or she may take you to the nearest emergency room."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Anaphylaxis  (Outlook/Prognosis)?",
+        "reference": "Anaphylaxis is a severe disorder that can be life-threatening without prompt treatment. However, symptoms usually get better with the right therapy, so it is important to act right away."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Angioedema?",
+        "reference": "The main symptom is sudden swelling below the skin surface. You may also develop welts or swelling on the surface of your skin. The swelling usually occurs around the eyes and lips. It may also be found on the hands, feet, and throat. The swelling may form a line or be more spread out. The welts are painful and may be itchy. They turn pale and swell if irritated. The deeper swelling of angioedema may also be painful.\nOther symptoms may include:\nAbdominal cramping. Breathing difficulty. Swollen eyes and mouth. Swollen lining of the eyes (chemosis)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Angioedema?",
+        "reference": "Angioedema may be caused by an allergic reaction. During the reaction, histamine and other chemicals are released into the bloodstream. The body releases histamine when the immune system detects a foreign substance called an allergen.\nIn many cases, the cause of angioedema is never found. The following may cause angioedema:\nAnimal dander (scales of shed skin). Exposure to water, sunlight, cold or heat. Foods (such as berries, shellfish, fish, nuts, eggs, milk, and others). Insect bites. Medications (drug allergy), such as antibiotics (penicillin and sulfa drugs), nonsteroidal anti-inflammatory drugs (NSAIDs), and blood pressure medicines (ACE inhibitors). Pollen.\nHives and angioedema may also occur after infections or with other illnesses (including autoimmune disorders such as lupus, and leukemia and lymphoma). A form of angioedema runs in families and has different triggers, complications, and treatments. This is called hereditary angioedema, and it is not discussed in this article."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Angioedema ?",
+        "reference": "Call your health care provider if:\nAngioedema does not respond to treatment It is severe You have never had angioedema before\nGo to the emergency room or call the local emergency number (such as 911) if you have:\nAbnormal breathing sounds (stridor) Difficulty breathing Fainting Wheezing"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Angioedema  (Outlook/Prognosis)?",
+        "reference": "Angioedema that does not affect the breathing may be uncomfortable, but is usually harmless and goes away in a few days."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Asthma?",
+        "reference": "Most people with asthma have attacks separated by symptom-free periods. Some people have long-term shortness of breath with episodes of increased shortness of breath. Either wheezing or a cough may be the main symptom.\nAsthma attacks can last for minutes to days, and can become dangerous if the airflow is severely restricted.\nCough with or without sputum (phlegm) production Pulling in of the skin between the ribs when breathing (intercostal retractions) Shortness of breath that gets worse with exercise or activity Wheezing: Comes in episodes with symptom-free periods in between May be worse at night or in early morning May go away on its own Gets better when using drugs that open the airways (bronchodilators) Gets worse when breathing in cold air Gets worse with exercise Gets worse with heartburn (reflux) Usually begins suddenly\nBluish color to the lips and face Decreased level of alertness such as severe drowsiness or confusion, during an asthma attack Extreme difficulty breathing Rapid pulse Severe anxiety due to shortness of breath Sweating\nAbnormal breathing pattern (breathing out takes more than twice as long as breathing in) Breathing temporarily stops Chest pain Nasal flaring Tightness in the chest"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Asthma?",
+        "reference": "Asthma is caused by inflammation in the airways. When an asthma attack occurs, the muscles surrounding the airways become tight and the lining of the air passages swells. This reduces the amount of air that can pass by.\nIn sensitive individuals, asthma symptoms can be triggered by breathing in allergy-causing substances (called allergens or triggers).\nCommon asthma triggers include:\nAnimals (pet hair or dander) Dust Changes in weather (most often cold weather) Chemicals in the air or in food Exercise Mold Pollen Respiratory infections, such as the common cold Strong emotions (stress) Tobacco smoke\nAspirin and other nonsteroidal anti-inflammatory drugs (NSAIDs) provoke asthma in some patients."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Asthma ?",
+        "reference": "Many people with asthma have an individual or family history of allergies, such as hay fever (allergic rhinitis) or eczema. Others have no history of allergies."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Asthma ?",
+        "reference": "Call for an appointment with your health care provider if asthma symptoms develop. Call your health care provider or go to the emergency room if:\nAn asthma attack requires more medication than recommended Symptoms get worse or do not improve with treatment You have shortness of breath while talking Your peak flow measurement is 50-80% of your personal best\nGo to the emergency room if:\nDrowsiness or confusion develops There is severe shortness of breath at rest The peak flow measurement is less than 50% of your personal best You have severe chest pain"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Asthma  (Outlook/Prognosis)?",
+        "reference": "There is no cure for asthma, although symptoms sometimes improve over time. With proper self management and medical treatment, most people with asthma can lead normal lives."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of dermatitis herpetiformis?",
+        "reference": "Dermatitis herpetiformis is usually extremely itchy. The bumps or blisters usually appear on the elbows, knees, back, and buttocks. In most cases, the rash is the same size and shape on both sides. Symptoms of dermatitis herpetiformis tend to come and go."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes dermatitis herpetiformis?",
+        "reference": "The cause is unknown. However, dermatitis herpetiformis is frequently linked to gluten sensitivity (celiac sprue disease) in the small bowel."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Dermatitis herpetiformis ?",
+        "reference": "Dermatitis herpetiformis occurs in both men and women, usually of age 20 years and older. Although children may be sometimes affected."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Dermatitis herpetiformis ?",
+        "reference": "Call your health care provider if the rash is non- resolving despite of the treatment."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Dermatitis herpetiformis  (Outlook/Prognosis)?",
+        "reference": "Dermatitis herpetiformis is an autoimmune disorder which is strongly associated with celiac disease, which also affects the small intestine. The rash can be controlled with gluten free diet and an inability to adhere to the diet increase the risk of intestinal cancer."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Drug allergy?",
+        "reference": "Anaphylaxis, or severe allergic reaction (see below). Hives. Itching of the skin or eyes (common). Skin rash (common). Swelling of the lips, tongue, or face. Wheezing.\nSymptoms of anaphylaxis include:\nAbdominal pain or cramping. Confusion. Diarrhea. Difficulty breathing with wheeze or hoarse voice. Dizziness. Fainting, lightheadedness. Hives over different parts of the body. Nausea, vomiting. Rapid pulse. Sensation of feeling the heart beat (palpitations)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Drug allergy?",
+        "reference": "Adverse reactions to drugs are common, and almost any drug can cause an adverse reaction. Reactions range from irritating or mild side effects such as nausea and vomiting to life-threatening anaphylaxis.\nA true drug allergy results from a series of chemical steps within the body that produce the allergic reaction to a medication.\nIt can develop two different ways:\nThe first time you take the medicine, you have no problems, but your body's immune system produces a substance (antibody) called IgE against that drug. The next time you take the drug, the IgE tells your white blood cells to make a chemical called histamine, which causes your allergy symptoms. A drug allergy may also occur without your body producing IgE, but this is not well understood.\nMost drug allergies cause minor skin rashes and hives. Serum sickness is a delayed type of drug allergy that occurs a week or more after exposure to a medication or vaccine.\nPenicillin and related antibiotics are the most common cause of drug allergies. Other common allergy-causing drugs include:\nSulfa drugs. Anticonvulsants. Insulin preparations (particularly animal sources of insulin). Iodinated (containing iodine) x-ray contrast dyes (these can cause allergy-like anaphylactoid reactions).\nMost side effects of drugs are not due to an allergic reaction. For example, aspirin can cause nonallergic hives or trigger asthma. Some drug reactions are considered \"idiosyncratic.\" This means the reaction is an unusual effect of the medication, not due to a predictable chemical effect of the drug. Many people confuse an uncomfortable, but not serious, side effect of a medicine (such as nausea) with a true drug allergy, which can be life threatening."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Drug allergy ?",
+        "reference": "Call your health care provider if you are taking a medication and seem to be having a reaction to it.\nGo to the emergency room or call the local emergency number (such as 911) if you have difficulty breathing or develop other symptoms of severe asthma or anaphylaxis. These are emergency conditions."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Drug allergy  (Outlook/Prognosis)?",
+        "reference": "Most drug allergies respond readily to treatment. A few cases cause severe asthma, anaphylaxis, or death."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Food allergy?",
+        "reference": "Symptoms usually begin immediately, within 2 hours after eating. Rarely, the symptoms may begin hours after eating the offending food.\nIf you develop symptoms shortly after eating a specific food, you may have a food allergy. Key symptoms include hives, hoarse voice, and wheezing.\nOther symptoms that may occur include:\nAbdominal pain. Diarrhea. Difficulty swallowing. Itching of the mouth, throat, eyes, skin, or any area. Lightheadedness or fainting. Nasal congestion. Nausea. Runny nose. Patches of itchy, scaly skin (atopic dermatitis); skin may peel or blister. Swelling (angioedema), especially of the eyelids, face, lips, and tongue. Shortness of breath. Stomach cramps. Vomiting.\nSymptoms of mouth (oral) allergy syndrome:\nItchy lips, tongue, and throat. Swollen lips (sometimes)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Food allergy?",
+        "reference": "Normally, your body's immune system defends against potentially harmful substances, such as bacteria, viruses, and toxins. In some people, an immune response is triggered by a substance that is generally harmless, such as a specific food.\nThe cause of food allergies is related to your body making a type of allergy-producing substance called immunoglobulin E (IgE) antibodies to a particular food.\nAlthough many people have a food intolerance, food allergies are less common. In a true food allergy, the immune system produces antibodies and histamine in response to the specific food.\nAny food can cause an allergic reaction, but a few foods are the main culprits. In children, the most common food allergies are to:\nEggs. Milk. Peanuts. Shellfish (shrimp, crab, lobster). Soy. Tree nuts. Wheat.\nA food allergy frequently starts in childhood, but it can begin at any age. Fortunately, many children will outgrow their allergy to milk, egg, wheat, and soy by the time they are 5 years old if they avoid the offending foods when they are young. Allergies to peanuts, tree nuts, and shellfish tend to be lifelong.\nIn older children and adults, the most common food allergies are:\nFish. Peanuts. Shellfish. Tree nuts.\nFood additives -- such as dyes, thickeners, and preservatives – may rarely cause an allergic or intolerance reaction.\nAn allergy syndrome that affects the mouth and tongue may occur after eating certain fresh fruits and vegetables. These foods contain substances similar to certain pollens. For example, melon contains substances similar to ragweed pollen, and apples have allergens similar to tree pollen.\nMany Americans believe they have food allergies, while in reality fewer than 1% have true allergies. Most symptoms are caused by intolerances to foods such as:\nCorn products. Cow's milk and dairy products. Wheat and other gluten-containing grains."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Food allergy ?",
+        "reference": "Call your local emergency number, such as 911, if you have any serious or whole-body reactions (particularly wheezing or difficulty breathing) after eating a food. If your doctor prescribed epinephrine for severe reactions, inject it as soon as possible, even before calling 911. The sooner you inject the epinephrine, the better. Anyone who has had an allergic reaction to a food should be evaluated by an allergy specialist."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Food allergy  (Outlook/Prognosis)?",
+        "reference": "Avoiding the offending foods may be easy if the food is uncommon or easily identified. However, you may need to severely restrict your diet, carefully read all package ingredients, and ask detailed questions when eating away from home."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Hay fever?",
+        "reference": "Symptoms that occur shortly after you come into contact with the substance you are allergic to may include:\nItchy nose, mouth, eyes, throat, skin, or any area Problems with smell Runny nose Sneezing Tearing eyes\nSymptoms that may develop later include:\nStuffy nose (nasal congestion) Coughing Clogged ears and decreased sense of smell Sore throat Dark circles under the eyes Puffiness under the eyes Fatigue and irritability Headache Memory problems and slowed thinking"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Hay fever?",
+        "reference": "An allergen is something that triggers an allergy. When a person with allergic rhinitis breathes in an allergen such as pollen or dust, the body releases chemicals, including histamine. This causes allergy symptoms such as itching, swelling, and mucus production.\nHay fever involves an allergic reaction to pollen. (A similar reaction occurs with allergy to mold, animal dander, dust, and similar inhaled allergens.)\nThe pollens that cause hay fever vary from person to person and from region to region. Large, visible pollens are seldom responsible for hay fever. Tiny, hard to see pollens more often cause hay fever. Examples of plants commonly responsible for hay fever include:\nTrees (deciduous and evergreen) Grasses Ragweed\nThe amount of pollen in the air can play a role in whether hay fever symptoms develop. Hot, dry, windy days are more likely to have increased amounts of pollen in the air than cool, damp, rainy days when most pollen is washed to the ground.\nSome disorders may be associated with allergies. These include eczema and asthma.\nAllergies are common. Your genes and environment may make you more prone to allergies."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Hay fever?",
+        "reference": "Whether or not you are likely to develop allergies is often passed down through families. If both your parents have allergies, you are likely to have allergies. The chance is greater if your mother has allergies."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Hay fever ?",
+        "reference": "Call for an appointment with your health care provider if severe symptoms of allergies or hay fever occur, if previously successful treatment has become ineffective, or if your symptoms do not respond to treatment."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Hay fever  (Outlook/Prognosis)?",
+        "reference": "Most symptoms of allergic rhinitis can be treated. More severe cases require allergy shots.\nSome people (particularly children) may outgrow an allergy as the immune system becomes less sensitive to the allergen. However, as a general rule, once a substance causes allergies for an individual, it can continue to affect the person over the long term."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Hypersensitivity pneumonitis?",
+        "reference": "Symptoms of acute hypersensitivity pneumonitis may occur 4 - 6 hours after you have left the area where the foreign substance is found, making it difficult to find a connection between your activity and the disease.\nSymptoms may include:\nChills. Cough. Fever. Malaise (feeling ill). Shortness of breath.\nSymptoms of chronic hypersensitivity pneumonitis may include:\nBreathlessness, especially with activity. Cough, often dry. Loss of appetite. Unintentional weight loss."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Hypersensitivity pneumonitis?",
+        "reference": "Hypersensitivity pneumonitis usually occurs in people who work in places where there are high levels of organic dusts, fungus, or molds. Bird fancier's lung is the most common type of hypersensitivity pneumonitis. It is caused by repeated or intense exposure to proteins found in the feathers or droppings of many species of birds.\nFarmer's lung is caused by exposure to dust from moldy hay, straw, and grain. These exposures can lead to lung inflammation and acute lung disease. Over time, this acute Hypersensitivity pneumonitis may turn into long-lasting (chronic) lung disease.\nHypersensitivity pneumonitis may also be caused by fungi or bacteria in humidifiers, heating systems, and air Hypersensitivity pneumonitisers found in homes and offices. Exposure to certain chemicals, such as isocyanates or acid anhydrides, can also lead to hypersensitivity pneumonitis."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Hypersensitivity pneumonitis ?",
+        "reference": "Call your health care provider if you develop symptoms of hypersensitivity pneumonitis."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Hypersensitivity pneumonitis  (Outlook/Prognosis)?",
+        "reference": "Most symptoms go away when you avoid or limit your exposure to the material that caused the problem."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "How is the Skin allergy testing done?",
+        "reference": "There are many methods of allergy testing. Among the more common are:\nSkin tests. Elimination-type tests. Blood tests (including the radioallergosorbent, or RAST, test).\nSKIN TESTS\nSkin tests are the most common. Specific methods vary.\nOne of the most common methods is the prick test. This test involves placing a small amount of suspectedallergy-causing substances on the skin, usually the forearm, upper arm, or the back. Then, the skin is pricked so the allergen goes under the skin's surface. The health care provider closely watches the skin for signs of a reaction, usually swelling and redness of the site. Results are usually seen within 15-20 minutes. Several allergens can be tested at the same time.\nA similar method involves injecting a small amount of allergen into the skin and watching for a reaction at the site. This is called an intradermal skin test. It is more likely to be used when testing is being done to find out if you are allergy to something specific, such as bee venom or penicillin.\nPatch testing is a method to diagnose allergic reactions on the skin. Possible allergens are taped to the skin for 48 hours. The health care provider will look at the area in 24 hours, and then again 48 hours later.\nSkin tests are most useful for diagnosing:\nFood allergy. Mold, pollen, animal, and other allergies that cause allergic rhinitis and asthma. Penicillin allergy. Venom allergy. Allergic contact dermatitis.\nELIMINATION TESTS\nAn elimination diet can be used to check for food allergies. An elimination diet is one in which foods that may be causing symptoms are removed from the diet for several weeks and then slowly re-introduced one at a time while the person is watched for signs of an allergic reaction.\nBLOOD TESTS\nBlood tests can be done to measure the amount of immunoglobulin (Ig) E antibodies to a specific allergen in the blood. This test may be used when skin testing is not helpful or cannot be done\nOther blood tests include:\nAbsolute eosinophil count. Total IgE level.\nPROVOCATION\nProvocation (challenge) testing involves exposing a person to a suspected allergen under controlled circumstances. This may be done in the diet or by breathing in the suspected allergen. This type of test may provoke severe allergic reactions. Challenge testing should only be done by a doctor.\nAnother method is the double-blind test. This method involves giving foods and harmless substances in a disguised form. The person being tested and the provider are both unaware of whether the substance tested in that session is the harmless substance or the suspected food. A third party knows the identity of the substances and identifies them with some sort of code. This test requires several sessions if more than one substance is under investigation.\nWhile the double-blind strategy is useful and practical for mild allergic reactions, it must be done carefully in individuals with suspected severe reactions to foods. Blood tests may be a safer first approach.\nSkin tests may cause very mild discomfort when the skin is pricked. Itching may occur if you have a positive reaction to the allergen."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who needs Skin allergy testing?",
+        "reference": "Allergy tests are done to determine the specific substances that cause an allergic reaction in a person.\nYour doctor may order allergy tests if you have:\nAllergic rhinitis and asthma symptoms that are not easily controlled with medications. Angioedema and hives. Food allergies. Contact dermatitis. Penicillin allergy.\nNOTE: Allergies to penicillin and closely related medications are the only drug allergies that can be tested using skin tests. Skin tests for allergies to other drugs can be dangerous.\nThe prick skin test may also be used to diagnose food allergies. Intradermal tests are not used to test for food allergies because of high false positive results and the danger of causing a severe allergic reaction."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Where to find centers that perform Skin allergy testing?",
+        "reference": "Directions to Hospitals Performing Skin allergy testing"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Skin allergy testing  (Outlook/Prognosis)?",
+        "reference": "Normal Results\nIn a nonallergic person, allergy tests should be negative (no response to the allergen).\nAbnormal Results\nA positive result means you reacted to a specific substance. Often, but not always, a positive result means the symptoms that you are having are due to exposure to the substance in question. In general, a stronger response means you are more sensitive to the substance.\nPeople can have a positive response with allergy skin testing, but not have any problems with the specific substance in every day life.\nThe skin tests are generally reliable. However, if the dose of allergen is excessive, a positive reaction will occur even in persons who are not allergic."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Urticaria ?",
+        "reference": "Itching Swelling of the surface of the skin into red- or skin-colored welts (called wheals) with clearly defined edges.\nThe hives may get bigger, spread, and join together to form larger areas of flat, raised skin.\nThey can also change shape, disappear, and reappear within minutes or hours. A true hive comes and goes. When you press the center of one, it turns white. This is called blanching."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the causes of Urticaria ?",
+        "reference": "When you have an allergic reaction to a substance, your body releases histamine and other chemicals into your bloodstream. This causes itching, swelling, and other symptoms. Hives are a common reaction, especially in people with other allergies such as hay fever.\nWhen swelling or welts occur around the face, especially the lips and eyes, it is called angioedema. Swelling from angioedema can also occur around your hands, feet, and throat.\nMany substances can trigger hives, including:\nAnimal dander (especially cats) Insect bites Medications Pollen Shellfish, fish, nuts, eggs, milk, and other foods\nHives may also develop as a result of:\nEmotional stress Extreme cold or sun exposure Excessive perspiration Illness (including lupus, other autoimmune diseases, and leukemia Infections such as mononucleosis"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Urticaria ?",
+        "reference": "Call 911 or your local emergency number if you have:\nFainting Shortness of breath Tightness in your throat Tongue or face swelling Wheezing\nCall your health care provider if the hives are severe, uncomfortable, and do not respond to self-care measures."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Urticaria  (Outlook/Prognosis)?",
+        "reference": "Hives may be uncomfortable, but they generally are harmless and disappear on their own. In most cases, the exact cause of hives cannot be identified."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Malignant hyperthermia?",
+        "reference": "Bleeding Dark brown urine Muscle ache without an obvious cause, such as exercise or injury Muscle rigidity and stiffness Quick rise in body temperature to 105 degrees F or higher"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Malignant hyperthermia ?",
+        "reference": "Malignant hyperthermia is inherited. Only one parent has to carry the disease for a child to inherit the condition.\nIt may occur with muscle diseases such as multiminicore myopathy and central core disease."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Malignant hyperthermia ?",
+        "reference": "Tell both the surgeon and anesthesiologist before having any surgery if:\nYou know that you or a member of your family has had problems with general anesthesia You know you have a family history of malignant hyperthermia"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Malignant hyperthermia  (Outlook/Prognosis)?",
+        "reference": "Repeated episodes or untreated episodes can cause kidney failure. Untreated episodes can be fatal."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "How is Pain Treated?",
+        "reference": "The goal of pain management is to improve function, enabling individuals to work, attend school, or participate in other day-to-day activities. Patients and their physicians have a number of options for the treatment of pain; some are more effective than others. Sometimes, relaxation and the use of imagery as a distraction provide relief. These methods can be powerful and effective, according to those who advocate their use. Whatever the treatment regime, it is important to remember that pain is treatable. The following treatments are among the most common.\nAcetaminophen is the basic ingredient found in Tylenol® and its many generic equivalents. It is sold over the counter, in a prescription-strength preparation, and in combination with codeine (also by prescription).\nAcupuncture dates back 2,500 years and involves the application of needles to precise points on the body. It is part of a general category of healing called traditional Chinese or Oriental medicine. Acupuncture remains controversial but is quite popular and may one day prove to be useful for a variety of conditions as it continues to be explored by practitioners, patients, and investigators.\nAnalgesic refers to the class of drugs that includes most painkillers, such as aspirin, acetaminophen, and ibuprofen. The word analgesic is derived from ancient Greek and means to reduce or stop pain. Nonprescription or over-the-counter pain relievers are generally used for mild to moderate pain. Prescription pain relievers, sold through a pharmacy under the direction of a physician, are used for more moderate to severe pain.\nAnticonvulsants are used for the treatment of seizure disorders but are also sometimes prescribed for the treatment of pain. Carbamazepine in particular is used to treat a number of painful conditions, including trigeminal neuralgia. Another antiepileptic drug, gabapentin, is being studied for its pain-relieving properties, especially as a treatment for neuropathic pain.\nAntidepressants are sometimes used for the treatment of pain and, along with neuroleptics and lithium, belong to a category of drugs called psychotropic drugs. In addition, anti-anxiety drugs called benzodiazepines also act as muscle relaxants and are sometimes used as pain relievers. Physicians usually try to treat the condition with analgesics before prescribing these drugs.\nAntimigraine drugs include the triptans- sumatriptan (Imitrex®), naratriptan (Amerge®), and zolmitriptan (Zomig®)-and are used specifically for migraine headaches. They can have serious side effects in some people and therefore, as with all prescription medicines, should be used only under a doctor's care.\nAspirin may be the most widely used pain-relief agent and has been sold over the counter since 1905 as a treatment for fever, headache, and muscle soreness.\nBiofeedback is used for the treatment of many common pain problems, most notably headache and back pain. Using a special electronic machine, the patient is trained to become aware of, to follow, and to gain control over certain bodily functions, including muscle tension, heart rate, and skin temperature. The individual can then learn to effect a change in his or her responses to pain, for example, by using relaxation techniques. Biofeedback is often used in combination with other treatment methods, generally without side effects. Similarly, the use of relaxation techniques in the treatment of pain can increase the patient's feeling of well-being.\nCapsaicin is a chemical found in chili peppers that is also a primary ingredient in pain-relieving creams (see Chili Peppers, Capsaicin, and Pain in the Appendix).\nChemonucleolysis is a treatment in which an enzyme, chymopapain, is injected directly into a herniated lumbar disc (see Spine Basics in the Appendix) in an effort to dissolve material around the disc, thus reducing pressure and pain. The procedure's use is extremely limited, in part because some patients may have a life-threatening allergic reaction to chymopapain.\nChiropractic care may ease back pain, neck pain, headaches, and musculoskeletal conditions. It involves \"hands-on\" therapy designed to adjust the relationship between the body's structure (mainly the spine) and its functioning. Chiropractic spinal manipulation includes the adjustment and manipulation of the joints and adjacent tissues. Such care may also involve therapeutic and rehabilitative exercises.\nCognitive-behavioral therapy involves a wide variety of coping skills and relaxation methods to help prepare for and cope with pain. It is used for postoperative pain, cancer pain, and the pain of childbirth.\nCounseling can give a patient suffering from pain much needed support, whether it is derived from family, group, or individual counseling. Support groups can provide an important adjunct to drug or surgical treatment. Psychological treatment can also help patients learn about the physiological changes produced by pain.\nCOX-2 inhibitors may be effective for individuals with arthritis. For many years scientists have wanted to develop a drug that works as well as morphine but without its negative side effects. Nonsteroidal anti-inflammatory drugs (NSAIDs) work by blocking two enzymes, cyclooxygenase-1 and cyclooxygenase-2, both of which promote production of hormones called prostaglandins, which in turn cause inflammation, fever, and pain. The newer COX-2 inhibitors primarily block cyclooxygenase-2 and are less likely to have the gastrointestinal side effects sometimes produced by NSAIDs.\nIn 1999, the Food and Drug Administration approved a COX-2 inhibitor-celecoxib-for use in cases of chronic pain. The long-term effects of all COX-2 inhibitors are still being evaluated, especially in light of new information suggesting that these drugs may increase the risk of heart attack and stroke. Patients taking any of the COX-2 inhibitors should review their drug treatment with their doctors.\nElectrical stimulation, including transcutaneous electrical stimulation (TENS), implanted electric nerve stimulation, and deep brain or spinal cord stimulation, is the modern-day extension of age-old practices in which the nerves of muscles are subjected to a variety of stimuli, including heat or massage. Electrical stimulation, no matter what form, involves a major surgical procedure and is not for everyone, nor is it 100 percent effective. The following techniques each require specialized equipment and personnel trained in the specific procedure being used:\nTENS uses tiny electrical pulses, delivered through the skin to nerve fibers, to cause changes in muscles, such as numbness or contractions. This in turn produces temporary pain relief. There is also evidence that TENS can activate subsets of peripheral nerve fibers that can block pain transmission at the spinal cord level, in much the same way that shaking your hand can reduce pain. Peripheral nerve stimulation uses electrodes placed surgically on a carefully selected area of the body. The patient is then able to deliver an electrical current as needed to the affected area, using an antenna and transmitter. Spinal cord stimulation uses electrodes surgically inserted within the epidural space of the spinal cord. The patient is able to deliver a pulse of electricity to the spinal cord using a small box-like receiver and an antenna taped to the skin. Deep brain or intracerebral stimulation is considered an extreme treatment and involves surgical stimulation of the brain, usually the thalamus. It is used for a limited number of conditions, including severe pain, central pain syndrome, cancer pain, phantom limb pain, and other neuropathic pains.\nExercise has come to be a prescribed part of some doctors' treatment regimes for patients with pain. Because there is a known link between many types of chronic pain and tense, weak muscles, exercise-even light to moderate exercise such as walking or swimming-can contribute to an overall sense of well-being by improving blood and oxygen flow to muscles. Just as we know that stress contributes to pain, we also know that exercise, sleep, and relaxation can all help reduce stress, thereby helping to alleviate pain. Exercise has been proven to help many people with low back pain. It is important, however, that patients carefully follow the routine laid out by their physicians.\nHypnosis, first approved for medical use by the American Medical Association in 1958, continues to grow in popularity, especially as an adjunct to pain medication. In general, hypnosis is used to control physical function or response, that is, the amount of pain an individual can withstand. How hypnosis works is not fully understood. Some believe that hypnosis delivers the patient into a trance-like state, while others feel that the individual is simply better able to concentrate and relax or is more responsive to suggestion. Hypnosis may result in relief of pain by acting on chemicals in the nervous system, slowing impulses. Whether and how hypnosis works involves greater insight-and research-into the mechanisms underlying human consciousness.\nIbuprofen is a member of the aspirin family of analgesics, the so-called nonsteroidal anti-inflammatory drugs (see below). It is sold over the counter and also comes in prescription-strength preparations.\nLow-power lasers have been used occasionally by some physical therapists as a treatment for pain, but like many other treatments, this method is not without controversy.\nMagnets are increasingly popular with athletes who swear by their effectiveness for the control of sports-related pain and other painful conditions. Usually worn as a collar or wristwatch, the use of magnets as a treatment dates back to the ancient Egyptians and Greeks. While it is often dismissed as quackery and pseudoscience by skeptics, proponents offer the theory that magnets may effect changes in cells or body chemistry, thus producing pain relief.\nNarcotics (see Opioids, below).\nNerve blocks employ the use of drugs, chemical agents, or surgical techniques to interrupt the relay of pain messages between specific areas of the body and the brain. There are many different names for the procedure, depending on the technique or agent used. Types of surgical nerve blocks include neurectomy; spinal dorsal, cranial, and trigeminal rhizotomy; and sympathectomy, also called sympathetic blockade (see Nerve Blocks in the Appendix).\nNonsteroidal anti-inflammatory drugs (NSAIDs) (including aspirin and ibuprofen) are widely prescribed and sometimes called non-narcotic or non-opioid analgesics. They work by reducing inflammatory responses in tissues. Many of these drugs irritate the stomach and for that reason are usually taken with food. Although acetaminophen may have some anti-inflammatory effects, it is generally distinguished from the traditional NSAIDs.\nOpioids are derived from the poppy plant and are among the oldest drugs known to humankind. They include codeine and perhaps the most well-known narcotic of all, morphine. Morphine can be administered in a variety of forms, including a pump for patient self-administration. Opioids have a narcotic effect, that is, they induce sedation as well as pain relief, and some patients may become physically dependent upon them. For these reasons, patients given opioids should be monitored carefully; in some cases stimulants may be prescribed to counteract the sedative side effects. In addition to drowsiness, other common side effects include constipation, nausea, and vomiting.\nPhysical therapy and rehabilitation date back to the ancient practice of using physical techniques and methods, such as heat, cold, exercise, massage, and manipulation, in the treatment of certain conditions. These may be applied to increase function, control pain, and speed the patient toward full recovery.\nPlacebos offer some individuals pain relief although whether and how they have an effect is mysterious and somewhat controversial. Placebos are inactive substances, such as sugar pills, or harmless procedures, such as saline injections or sham surgeries, generally used in clinical studies as control factors to help determine the efficacy of active treatments. Although placebos have no direct effect on the underlying causes of pain, evidence from clinical studies suggests that many pain conditions such as migraine headache, back pain, post-surgical pain, rheumatoid arthritis, angina, and depression sometimes respond well to them. This positive response is known as the placebo effect, which is defined as the observable or measurable change that can occur in patients after administration of a placebo. Some experts believe the effect is psychological and that placebos work because the patients believe or expect them to work. Others say placebos relieve pain by stimulating the brain's own analgesics and setting the body's self-healing forces in motion. A third theory suggests that the act of taking placebos relieves stress and anxiety-which are known to aggravate some painful conditions-and, thus, cause the patients to feel better. Still, placebos are considered controversial because by definition they are inactive and have no actual curative value.\nR.I.C.E. - Rest, Ice, Compression, and Elevation - are four components prescribed by many orthopedists, coaches, trainers, nurses, and other professionals for temporary muscle or joint conditions, such as sprains or strains. While many common orthopedic problems can be controlled with these four simple steps, especially when combined with over-the-counter pain relievers, more serious conditions may require surgery or physical therapy, including exercise, joint movement or manipulation, and stimulation of muscles.\nSurgery, although not always an option, may be required to relieve pain, especially pain caused by back problems or serious musculoskeletal injuries. Surgery may take the form of a nerve block (see Nerve Blocks in the Appendix) or it may involve an operation to relieve pain from a ruptured disc. Surgical procedures for back problems include discectomy or, when microsurgical techniques are used, microdiscectomy, in which the entire disc is removed; laminectomy, a procedure in which a surgeon removes only a disc fragment, gaining access by entering through the arched portion of a vertebra; and spinal fusion, a procedure where the entire disc is removed and replaced with a bone graft. In a spinal fusion, the two vertebrae are then fused together. Although the operation can cause the spine to stiffen, resulting in lost flexibility, the procedure serves one critical purpose: protection of the spinal cord. Other operations for pain include rhizotomy, in which a nerve close to the spinal cord is cut, and cordotomy, where bundles of nerves within the spinal cord are severed. Cordotomy is generally used only for the pain of terminal cancer that does not respond to other therapies. Another operation for pain is the dorsal root entry zone operation, or DREZ, in which spinal neurons corresponding to the patient's pain are destroyed surgically. Because surgery can result in scar tissue formation that may cause additional problems, patients are well advised to seek a second opinion before proceeding. Occasionally, surgery is carried out with electrodes that selectively damage neurons in a targeted area of the brain. These procedures rarely result in long-term pain relief, but both physician and patient may decide that the surgical procedure will be effective enough that it justifies the expense and risk. In some cases, the results of an operation are remarkable. For example, many individuals suffering from trigeminal neuralgia who are not responsive to drug treatment have had great success with a procedure called microvascular decompression, in which tiny blood vessels are surgically separated from surrounding nerves."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Abdominal aortic aneurysm?",
+        "reference": "Aneurysms develop slowly over many years and often have no symptoms. If an aneurysm expands rapidly, tears open (ruptured aneurysm), or blood leaks along the wall of the vessel (aortic dissection), symptoms may develop suddenly. As the aneurysm grows, some symptoms may be:\nPulsating feeling near the navel Pain in the abdomen or back -- severe, sudden, persistent, or constant. The pain may radiate to the groin, buttocks, or legs. Clammy skin Nausea and vomiting Shock Rapid heart rate"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Abdominal aortic aneurysm?",
+        "reference": "The exact cause is unknown, but risk factors for developing an aortic aneurysm include:\nSmoking High blood pressure High cholesterol Male gender Emphysema Genetic factors Obesity"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Abdominal aortic aneurysm ?",
+        "reference": "An abdominal aortic aneurysm can develop in anyone, but is most often seen in males over 60 who have one or more risk factors. The larger the aneurysm, the more likely it is to rupture and break open."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Abdominal aortic aneurysm ?",
+        "reference": "Go to the emergency room or call 911 if you have pain in your belly or back that does not go away or is very bad."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Abdominal aortic aneurysm  (Outlook/Prognosis)?",
+        "reference": "The outcome is usually good if an experienced surgeon repairs the aneurysm before it ruptures. However, less than 40% of patients survive a ruptured abdominal aneurysm."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Acute aortic syndrome?",
+        "reference": "The symptoms usually begin suddenly, and include severe chest pain. The pain may feel like a heart attack, and can:\nBe described as sharp, stabbing, tearing, or ripping Be felt below the chest bone, then move under the shoulder blades or to the back Move to the shoulder, neck, arm, jaw, abdomen, or hips Change position -- pain typically moves to the arms and legs as the acute aortic syndrome gets worse\nSymptoms are caused by a decrease of blood flowing to the rest of the body, and can include:\nAnxiety and a feeling of doom Fainting or dizziness Heavy sweating (clammy skin) Nausea and vomiting Pale skin (pallor) Rapid, weak pulse Shortness of breath -- trouble breathing when lying flat (orthopnea)\nOther symptoms may include:\nPain in the abdomen Stroke symptoms Swallowing difficulties from pressure on the esophagus"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Acute aortic syndrome?",
+        "reference": "When it leaves the heart, the aorta first moves up through the chest toward the head (the ascending aorta). It then bends or arches, and finally moves down through the chest and abdomen (the descending aorta). Acute aortic syndrome most often happens because of a tear or damage to the inner wall of the aorta. This usually occurs in the chest (thoracic) part of the artery, but it may also occur in the abdominal part.\nWhen a tear occurs, it creates two channels:\nOne in which blood continues to travel Another where blood stays still\nIf the channel with nontraveling blood gets bigger, it can push on other branches of the aorta. This can narrow the other branches and reduce blood flow through them. An Acute aortic syndrome may also cause abnormal widening or ballooning of the aorta (aneurysm)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Acute aortic syndrome ?",
+        "reference": "Aging Atherosclerosis Blunt trauma to the chest, such as hitting the steering wheel of a car during an accident High blood pressure\nOther risk factors and conditions associated with the development of acute aortic syndrome include:\nBicuspid aortic valve Coarctation (narrowing) of the aorta Connective tissue disorders Heart surgery or procedures Marfan syndrome and rare genetic disorders Pregnancy Swelling of the blood vessels due to conditions such as arteritis and syphilis\nAcute aortic syndrome occurs in about 2 out of every 10,000 people. It can affect anyone but is most often seen in men ages 40 to 70."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Acute aortic syndrome ?",
+        "reference": "If you have symptoms of acute aortic syndrome or severe chest pain, call 911 or your local emergency number or go to the emergency room as quickly as possible."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Acute aortic syndrome  (Outlook/Prognosis)?",
+        "reference": "Acute aortic syndrome is life-threatening. The condition can be managed with surgery if it is done before the aorta ruptures. Less than half of patients with a ruptured aorta survive.\nThose who survive will need lifelong, aggressive treatment of high blood pressure. They will need to be followed up with CT scans every few months to monitor the aorta."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Alstrom syndrome?",
+        "reference": "Blindness or severe vision impairment in infancy Dark patches of skin (acanthosis nigricans) Deafness Impaired heart function (cardiomyopathy), which may lead to heart failure Obesity Progressive kidney failure Slowed growth Symptoms of childhood-onset or type 2 diabetes\nOccasionally, the following can also occur:\nGastrointestinal reflux Hypothyroidism Liver dysfunction Small penis"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Alstrom syndrome?",
+        "reference": "Alström syndrome is inherited in an autosomal recessive manner. This means both your parents must pass on a copy of the defective gene (ALMS1) in order for you to have this disease. It is unknown how the defective gene causes the disorder. The condition is extremely rare. It is more common in Holland and Sweden than in the United States."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Alstrom syndrome ?",
+        "reference": "Call your health care provider if you or your child have symptoms of diabetes such as increased thirst and urination. Seek medical attention promptly if you think that your child cannot see or hear normally."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Alstrom syndrome  (Outlook/Prognosis)?",
+        "reference": "The following are likely to develop:\nDeafness Permanent blindness Type 2 diabetes Kidney and liver failure may get worse."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Amyloidosis?",
+        "reference": "Symptoms depend on the organs affected by the deposits. These organs can include the tongue, intestines, skeletal and smooth muscles, nerves, skin, ligaments, heart, liver, spleen, and kidneys. Symptoms include:\nAbnormal heart rhythm (arrythmia) Enlarged tongue Fatigue Numbness of hands and feet Shortness of breath Skin changes Swallowing problems Swelling in the arms and legs Weak hand grip Weight loss\nOther symptoms that may occur with this disease:\nDecreased urine output Diarrhea Hoarseness or changing voice Joint pain Weakness"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Amyloidosis?",
+        "reference": "The cause of primary amyloidosis is unknown. The condition is related to abnormal and excess production of antibodies by a type of immune cell called plasma cells.\nPrimary amyloidosis can lead to conditions that include:\nCarpal tunnel syndrome Heart muscle damage (cardiomyopathy) leading to congestive heart failure Intestinal malabsorption Liver enlargement Kidney failure Nephrotic syndrome Neuropathy (nerves that do not work properly) Orthostatic hypotension (abnormal drop in blood pressure with standing)\nThe deposits build up in the affected organs, causing them to become stiff, which decreases their ability to function."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Amyloidosis ?",
+        "reference": "Risk factors have not been identified. Primary amyloidosis is rare. It is similar to multiple myeloma, and is treated the same way."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Amyloidosis ?",
+        "reference": "Call your health care provider if:\nYou have symptoms of primary amyloidosis. You know you have primary amyloidosis and you have difficulty breathing, persistent swelling of the ankles or other areas, decreased urine output, or other symptoms that may indicate complications have developed."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Amyloidosis  (Outlook/Prognosis)?",
+        "reference": "How severe the disease is depends on the organs that are affected. When the heart and kidney are involved, it may lead to organ failure and death. Body-wide (systemic) involvement can lead to death in 1 to 3 years."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Aneurysm ?",
+        "reference": "The symptoms depend on the location of the aneurysm. If the aneurysm occurs near the body's surface, pain and swelling with a throbbing mass is often seen.\nAneurysms within the body or brain often cause no symptoms.\nIf an aneurysm ruptures, pain, low blood pressure, a rapid heart rate, and lightheadedness may occur. The risk of death after a rupture is high."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Aneurysm ?",
+        "reference": "It is not clear exactly what causes aneurysms. Some aneurysms are present at birth (congenital). Defects in some of the parts of the artery wall may be responsible. Common locations for aneurysms include:\nThe major artery from the heart (the aorta) The brain (cerebral aneurysm) In the leg behind the knee popliteal artery aneurysm) Intestine (mesenteric artery aneurysm) An artery in the spleen (splenic artery aneurysm)\nHigh blood pressure, high cholesterol, and cigarette smoking may raise your risk of certain types of aneurysms. High blood pressure is thought to play a role in abdominal aortic aneurysms. Atherosclerotic disease (cholesterol buildup in arteries) may also lead to the formation of some aneurysms.\nPregnancy is often linked to the formation and rupture of splenic artery aneurysms."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to Contact a Medical Professional ?",
+        "reference": "Call your health care provider for if you develop a lump on your body, whether or not it is painful and throbbing."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Aneurysm  (Outlook/Prognosis)?",
+        "reference": "With successful surgical repair, the outlook is often excellent."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are symptoms of Angina?",
+        "reference": "Angina itself is the most important syptom of coronary artery disease. It is the signal of myocardial ischemia. There are other symptoms accopanying with angina as following,\nChest pain: It always focus on precordial region or behind sternum. Not all chest pain is related to coronary artery disease. Feeling of chest pressure: Some people feel chest pressure just like a huge stone on your chest or like a rope stringing your chest. Feeling of indigestion: Loss of appetite, nausea or vomiting may occur in part patient. Pain in shoulders,arms,jaw or back: It is always accompanying with chest pain or discomfort.\nOther health problems may also cause these symptoms. Only a doctor can tell for sure. A person with any of these symptoms should tell the doctor so that problems can be diagnosed and treated as early as possible."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Angina ?",
+        "reference": "Studies have found a number of factors that may induce angina. The risk factors of coronary artery disease are as the same as Angina. It concludes bad lifestyle and cardiovascular diseases risk factors. Some you can change and some you can not change.\nRisk factors you can change\nCigarette smoking: Cigarette somking has a close relationship with many cardiovascular diseases. Smokers' risk of developing coronary heart disease is 2–4 times than that of nonsmokers. Besides, it is also a powerful independent risk factor for sudden cardiac death in patients with coronary heart disease; smokers have about twice the risk of nonsmokers. Furthermore, cigarette smoking acts with other risk factors to greatly increase the hazard for coronary heart disease. People who smoke seem to have a higher risk of death from coronary heart diseases (and possibly stroke) but these risk isn't as great as cigarette nonsmokers'. High blood cholesterol: As blood cholesterol rises, so does risk of coronary heart disease. A person's cholesterol level is greatly affected by diet. Stress: Clinical researches demonstrate that stress may be a contributing factor for coronary artery disease. People under stress may overeat, start smoking or smoke more than they otherwise would. These behavior may increase the risk of incidence of cardiovascular diseases. Weight: Overweight and fat, especially body mass index (BMI) higher than 28 are risk factor for angina. Controlling weight is an available way to decrease the incident of angina. High blood pressure: Patients with Hypertension seem to have a higher risk to develope coronary artery disease. This is because that Hypertension decrease the reserve of coronary arteries. Diabetes mellitus: Like hypertension, patients with diabetes mellitus seem to have a higher risk to develope coronary artery disease. Because diabetes mellitus damage both coronary arteries and myocardial capillary vessels. Drinking too much alcohol: Data has demonstrated too much alcohol damage your arteries and myocardium.\nRisk factors that you cannot change\nAge: People being older than 65 years or more have more probobility to develope to coronary artery disease than younger. Gender: Male is an independent risk factor to develope to coronary artery disease than female. Post-menopause women also have greater probobility than younger women. Heredity: Person with a family history of cardiovascular diseases is more likely to develope to coronary artery disease than people without family history. Race: African Americans are at a higher risk than other races."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Angina ?",
+        "reference": "People with cardiovascular diseases family history or bad life-style should go to the doctor to follow-up. When one has the following symptoms, he/she need to seek urgent medical care:\nPersistent and severe chest pain Sudden drop in blood pressure Shortness of breath Angina or chest pain accompanying with sweating or nausea or discomfort in shoulders, arms, jaws, neck or abdomen\nThese symptoms suggest that the person need to go to hospital to verify whether there are acute coronary syndrome (ACS) or not."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are symptoms of angina pectoris?",
+        "reference": "Angina itself is the most important syptom of coronary artery disease. It is the signal of myocardial ischemia. There are other symptoms accopanying with angina as following,\nChest pain: It always focus on precordial region or behind sternum. Not all chest pain is related to coronary artery disease. Feeling of chest pressure: Some people feel chest pressure just like a huge stone on your chest or like a rope stringing your chest. Feeling of indigestion: Loss of appetite, nausea or vomiting may occur in part patient. Pain in shoulders,arms,jaw or back: It is always accompanying with chest pain or discomfort.\nOther health problems may also cause these symptoms. Only a doctor can tell for sure. A person with any of these symptoms should tell the doctor so that problems can be diagnosed and treated as early as possible."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Angina pectoris ?",
+        "reference": "Studies have found a number of factors that may induce angina. The risk factors of coronary artery disease are as the same as Angina. It concludes bad lifestyle and cardiovascular diseases risk factors. Some you can change and some you can not change.\nRisk factors you can change\nCigarette smoking: Cigarette somking has a close relationship with many cardiovascular diseases. Smokers' risk of developing coronary heart disease is 2–4 times than that of nonsmokers. Besides, it is also a powerful independent risk factor for sudden cardiac death in patients with coronary heart disease; smokers have about twice the risk of nonsmokers. Furthermore, cigarette smoking acts with other risk factors to greatly increase the hazard for coronary heart disease. People who smoke seem to have a higher risk of death from coronary heart diseases (and possibly stroke) but these risk isn't as great as cigarette nonsmokers'. High blood cholesterol: As blood cholesterol rises, so does risk of coronary heart disease. A person's cholesterol level is greatly affected by diet. Stress: Clinical researches demonstrate that stress may be a contributing factor for coronary artery disease. People under stress may overeat, start smoking or smoke more than they otherwise would. These behavior may increase the risk of incidence of cardiovascular diseases. Weight: Overweight and fat, especially body mass index (BMI) higher than 28 are risk factor for angina. Controlling weight is an available way to decrease the incident of angina. High blood pressure: Patients with Hypertension seem to have a higher risk to develope coronary artery disease. This is because that Hypertension decrease the reserve of coronary arteries. Diabetes mellitus: Like hypertension, patients with diabetes mellitus seem to have a higher risk to develope coronary artery disease. Because diabetes mellitus damage both coronary arteries and myocardial capillary vessels. Drinking too much alcohol: Data has demonstrated too much alcohol damage your arteries and myocardium.\nRisk factors that you cannot change\nAge: People being older than 65 years or more have more probobility to develope to coronary artery disease than younger. Gender: Male is an independent risk factor to develope to coronary artery disease than female. Post-menopause women also have greater probobility than younger women. Heredity: Person with a family history of cardiovascular diseases is more likely to develope to coronary artery disease than people without family history. Race: African Americans are at a higher risk than other races."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Angina pectoris ?",
+        "reference": "People with cardiovascular diseases family history or bad life-style should go to the doctor to follow-up. When one has the following symptoms, he/she need to seek urgent medical care:\nPersistent and severe chest pain Sudden drop in blood pressure Shortness of breath Angina or chest pain accompanying with sweating or nausea or discomfort in shoulders, arms, jaws, neck or abdomen\nThese symptoms suggest that the person need to go to hospital to verify whether there are acute coronary syndrome (ACS) or not."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Antithrombin III deficiency?",
+        "reference": "Patients will usually have symptoms of a blood clot, including:\nCoughing up blood Fainting Shortness of breath and pain when taking deep breaths Swelling of one leg"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Antithrombin III deficiency?",
+        "reference": "Antithrombin III is a protein in the blood that naturally blocks blood clots from forming. Congenital antithrombin III deficiency is an inherited disease. It occurs when a person receives one abnormal copy of a gene from a parent with the disease.\nThe abnormal gene leads to low levels of antithrombin III. These low levels of antithrombin III can cause abnormal blood clots (thrombi) that may damage organs.\nOften, patients with this condition will have a blood clot at a young age and will have a family member who has also experienced a blood clotting episode. In people with this condition, a blood clot may occur without the common risk factors of pregnancy, lack of movement (due to surgery or trauma), or use of oral birth control pills."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Antithrombin III deficiency ?",
+        "reference": "See your health care provider if you have symptoms of this condition."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Antithrombin III deficiency  (Outlook/Prognosis)?",
+        "reference": "Most patients have a good outcome if they stay on anticoagulant medications."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are symptoms of Aortic coarctation?",
+        "reference": "The signs and symptoms of coarctation of the aorta depend on how much blood can flow through the artery. Children with serious aortic narrowing tend to show signs and symptoms earlier in life, while mild cases may not be diagnosed until adulthood. Usual symptoms include\nPale skin Dizziness or fainting Shortness of breath Headache Chest pain Nosebleed Hypertension Muscle weakness Leg cramps or cold feet Poor growth\nOther health problems may also cause these symptoms. Only a doctor can tell for sure. A person with any of these symptoms should tell the doctor so that the problems can be diagnosed and treated as early as possible."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are causes Aortic coarctation?",
+        "reference": "The aorta carries blood from the heart to the vessels that supply the body with blood and nutrients. If part of the aorta is narrowed, it is hard for blood to pass through the artery. Aortic coarctation is more common in persons with certain genetic disorders, such as Turner syndrome. However, it can also be due to birth defects of the aortic valves. Aortic coarctation is one of the more common heart conditions that are present at birth (congenital heart conditions). It is usually diagnosed in children or adults under age 40.\nCoarctation of the aorta may be seen with other congenital heart defects, such as:\nBicuspid aortic valve Defects in which only one ventricle is present Ventricular septal defect"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Aortic coarctation ?",
+        "reference": "Like many congenital heart disease, the cause of aortic coarctation is not clear. Clinical studies suggest that genetic and environmental factors both play an important role during pregnancy. These include:\nGenetic disorders such as Turner syndrome Viral infections during pregnancy"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Aortic coarctation ?",
+        "reference": "Call your health care provider if your baby has aortic coarctation and symptoms do not improve with treatment, or if new symptoms appear. If your baby experiences either of the following symptoms, seeking urgent medical care as soon as possible:\nSudden shortness of breath Severe chest pain Fainting Unexplained hypertension"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Aortic coarctation  (Outlook/Prognosis)?",
+        "reference": "The prognosis of aortic coarctation depends on whether balloon angioplasty and stenting or the surgery has been done or not."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Aortic dissection?",
+        "reference": "The symptoms usually begin suddenly, and include severe chest pain. The pain may feel like a heart attack, and can:\nBe described as sharp, stabbing, tearing, or ripping Be felt below the chest bone, then move under the shoulder blades or to the back Move to the shoulder, neck, arm, jaw, abdomen, or hips Change position -- pain typically moves to the arms and legs as the aortic dissection gets worse\nSymptoms are caused by a decrease of blood flowing to the rest of the body, and can include:\nAnxiety and a feeling of doom Fainting or dizziness Heavy sweating (clammy skin) Nausea and vomiting Pale skin (pallor) Rapid, weak pulse Shortness of breath -- trouble breathing when lying flat (orthopnea)\nOther symptoms may include:\nPain in the abdomen Stroke symptoms Swallowing difficulties from pressure on the esophagus"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Aortic dissection?",
+        "reference": "When it leaves the heart, the aorta first moves up through the chest toward the head (the ascending aorta). It then bends or arches, and finally moves down through the chest and abdomen (the descending aorta). Aortic dissection most often happens because of a tear or damage to the inner wall of the aorta. This usually occurs in the chest (thoracic) part of the artery, but it may also occur in the abdominal part.\nWhen a tear occurs, it creates two channels:\nOne in which blood continues to travel Another where blood stays still\nIf the channel with nontraveling blood gets bigger, it can push on other branches of the aorta. This can narrow the other branches and reduce blood flow through them. An aortic dissection may also cause abnormal widening or ballooning of the aorta (aneurysm)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Aortic dissection ?",
+        "reference": "The exact cause is unknown, but more common risks include:\nAging Atherosclerosis Blunt trauma to the chest, such as hitting the steering wheel of a car during an accident High blood pressure\nOther risk factors and conditions associated with the development of aortic dissection include:\nBicuspid aortic valve Coarctation (narrowing) of the aorta Connective tissue disorders Heart surgery or procedures Marfan syndrome and rare genetic disorders Pregnancy Swelling of the blood vessels due to conditions such as arteritis and syphilis\nAortic dissection occurs in about 2 out of every 10,000 people. It can affect anyone but is most often seen in men ages 40 to 70."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Aortic dissection ?",
+        "reference": "If you have symptoms of aortic dissection or severe chest pain, call 911 or your local emergency number or go to the emergency room as quickly as possible."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Aortic dissection  (Outlook/Prognosis)?",
+        "reference": "Aortic dissection is life-threatening. The condition can be managed with surgery if it is done before the aorta ruptures. Less than half of patients with a ruptured aorta survive.\nThose who survive will need lifelong, aggressive treatment of high blood pressure. They will need to be followed up with CT scans every few months to monitor the aorta."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What are the symptoms of Aortic insufficiency?",
+        "reference": "Aortic insufficiency often has no symptoms for many years. Symptoms may occur slowly or suddenly and include the following:\nBounding pulse Chest pain, angina type (rare) Under the chest bone; pain may move to other areas of the body, most often the left side of the chest Crushing, squeezing, pressure, tightness Pain increases with exercise, and goes away with rest Fainting Fatigue, excessive tiredness Irregular, rapid, racing, pounding, or fluttering pulse Palpitations (sensation of the heart beating) Shortness of breath with activity or when lying down Swelling of the feet, legs, or abdomen Weakness, more often with activity"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What causes Aortic insufficiency?",
+        "reference": "Aortic insufficiency can result from any condition that keeps the aortic valve from closing all the way. A small amount of blood comes back each time the heart beats.\nThe condition causes widening (dilation) of the left lower chamber of the heart. Larger amounts of blood leave the heart with each squeeze or contraction. This leads to a strong and forceful pulse (bounding pulse). Over time, the heart becomes less able to pump blood to the body.\nIn the past, rheumatic fever was the main cause of aortic insufficiency. Now that antibiotics are used to treat rheumatic fever, other causes are more commonly seen.\nCauses of aortic insufficiency may include:\nAnkylosing spondylitis Aortic dissection Congenital (present at birth) valve problems Endocarditis High blood pressure Marfan syndrome Reiter syndrome Syphilis Systemic lupus erythematosus"
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "Who is at highest risk for Aortic insufficiency ?",
+        "reference": "Aortic insufficiency affects approximately 5 out of every 10,000 people. It is most common in men between the ages of 30 and 60."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "When to seek urgent medical care when I have Aortic insufficiency ?",
+        "reference": "Call your health care provider if:\nYou have symptoms of aortic insufficiency. You have aortic insufficiency and symptoms worsen or new symptoms develop, especially chest pain, difficulty breathing, or edema (swelling)."
+    },
+    {
+        "instruction": "I am a patient.",
+        "input": "What to expect if I have Aortic insufficiency  (Outlook/Prognosis)?",
+        "reference": "Aortic insufficiency is curable with surgical repair. This can completely relieve symptoms unless severe heart failure is present or other complications develop. Without treatment, patients with angina or congestive heart failure do poorly."
+    }
+]

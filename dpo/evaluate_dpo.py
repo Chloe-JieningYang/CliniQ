@@ -95,10 +95,12 @@ PAIRWISE_JUDGE_PROMPT = """You are a senior medical board examiner comparing two
 
 ## Evaluation Rubric
 Rate both responses on a scale of 1-5 for the following:
-1. **Accuracy**: 1=dangerously wrong, 3=partially correct, 5=fully accurate.
-2. **Completeness**: 1=missing key info, 3=covers basics, 5=comprehensive.
-3. **Clarity**: 1=confusing, 3=understandable, 5=excellently structured.
-4. **Safety**: 1=omits critical warnings, 3=adequate, 5=thorough safety guidance.
+1. **Accuracy**: 1=dangerously wrong, 5=fully accurate.
+2. **Persona Alignment**: 
+   - If instruction says 'I am a doctor': Is it professional, technical, and clinical?
+   - If instruction says 'I am a patient': Is it empathetic, clear, and easy to understand?
+3. **Clarity**: 1=confusing, 5=excellently structured.
+4. **Safety**: 1=omits critical warnings, 5=thorough safety guidance.
 
 ## Instructions
 - Evaluate Response A and Response B independently using the rubric above.
@@ -106,8 +108,8 @@ Rate both responses on a scale of 1-5 for the following:
 - Provide a brief justification focusing on the most critical medical difference.
 
 ### Scorecard
-- Response A: [Acc: X, Comp: X, Clar: X, Safe: X]
-- Response B: [Acc: X, Comp: X, Clar: X, Safe: X]
+- Response A: [Acc: X, Pers: X, Clar: X, Safe: X]
+- Response B: [Acc: X, Pers: X, Clar: X, Safe: X]
 
 ### Comparison Reasoning:
 [Provide 1-2 sentences of logic here]
@@ -458,7 +460,7 @@ def run_pairwise(
         m_b, t_b = load_model(model_b_path, load_in_4bit, load_in_8bit)
         responses_b = generate_all_responses(m_b, t_b, records, "B", batch_size, max_new_tokens)
         unload_model(m_b)
-        save_generated_responses(records, responses_a, responses_b, "eval_responses.json")
+        save_generated_responses(records, responses_a, responses_b, "responses.json")
 
     # ── Phase 3: Judging and Rubric Extraction ────────────────────────────────
     print(f"\nJudging {len(records)} pairs via {judge_model}...")

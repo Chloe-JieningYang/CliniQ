@@ -1,3 +1,5 @@
+# How to run the script
+
 ## Prepare training data for DPO
 
 <!-- Generate rule-based pairs:
@@ -32,13 +34,7 @@ python prepare_train_data.py \
     --max_samples 5000 
 ``` -->
 
-Get the raw data:
-
-```bash
-python get_train_dataset.py
-```
-
-Process data to DPO format:
+Prepare the raw data to DPO format:
 
 ```bash
 python prepare_train_data.py
@@ -47,27 +43,29 @@ python prepare_train_data.py
 ## Train DPO
 
 ```bash
+export HF_TOKEN=<you-token>
+```
+
+```bash
 python train_dpo.py \
     --model "meta-llama/Llama-3.1-8B-Instruct" \
-    --sft_adapter_path "./sft_model" \
-    --data_path "./train_set/dpo_pairs_llama3_rejected.json" \
-    --output_dir "./output/dpo_model" \
+    --sft_adapter_path "../sft_model" \
+    --data_path "./train_set/dpo_train_data.jsonl" \
+    --output_dir "../dpo_model" \
     --train_in_4bit True \
     --bf16 True \
     --lora_r 16 \
     --lora_alpha 32 \
     --lora_target_modules "['q_proj','k_proj','v_proj','o_proj','gate_proj','up_proj','down_proj']" \
-    --beta 0.1 \
+    --beta 0.3 \
     --learning_rate 1e-6 \
-    --global_batch_size 64
+    --global_batch_size 64 
 ```
 
 ## Prepare evaluation data for DPO
 
 ```bash
-python prepare_eval_data.py \
-    --max_samples 200 \
-    --output_path mediqa_eval_ready.json
+python prepare_eval_data.py
 ```
 
 ## Evaluate DPO model
@@ -75,10 +73,10 @@ python prepare_eval_data.py \
 ```bash
 python evaluate_dpo.py \
     --mode pairwise \
-    --model_a ./sft_model \
-    --model_b ./output/dpo_model \
+    --model_a ../sft_model \
+    --model_b ../dpo_model \
     --judge_model Qwen/Qwen2.5-7B-Instruct \
-    --input_path mediqa_eval_ready.json \
+    --input_path ./eval_set/doctor_eval.json \
     --output_path eval_results.json \
     --hf_token <your-hf-token> \
     --load_in_4bit True \
