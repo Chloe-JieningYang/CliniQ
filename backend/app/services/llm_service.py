@@ -13,7 +13,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..core.config import Settings
-from .prompts import Role, build_chat_messages, build_user_content, system_prompt_for_role
+from .prompts import (
+    Role,
+    build_chat_messages,
+    build_user_content,
+    stub_chat_answer,
+    system_prompt_for_role,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +47,8 @@ class LLMService:
 
     @property
     def is_loaded(self) -> bool:
+        if self._settings.mock_generation:
+            return True
         return self._model is not None and self._tokenizer is not None
 
     @property
@@ -49,11 +57,14 @@ class LLMService:
 
     def load(self) -> None:
         """Load adapter + tokenizer into VRAM/RAM. Safe to call once at startup."""
+        self._load_error = None
+        if self._settings.mock_generation:
+            logger.info("CLINIQ_MOCK_GENERATION: skipping PEFT load (stub replies only)")
+            return
+
         import torch
         from peft import AutoPeftModelForCausalLM
         from transformers import AutoTokenizer, BitsAndBytesConfig
-
-        self._load_error = None
         adapter_path = self._adapter_path
         if not adapter_path.exists():
             self._load_error = f"Adapter path does not exist: {adapter_path}"
@@ -112,8 +123,11 @@ class LLMService:
 
     def model_card(self) -> Dict[str, Any]:
         """Non-secret summary for GET /api/v1/model."""
+        real_weights = self._model is not None and self._tokenizer is not None
         card: Dict[str, Any] = {
             "loaded": self.is_loaded,
+            "real_weights_loaded": real_weights,
+            "mock_generation": self._settings.mock_generation,
             "adapter_path": str(self._adapter_path),
             "device_map": self._settings.device_map,
             "load_in_4bit": self._settings.load_in_4bit,
@@ -168,6 +182,10 @@ class LLMService:
         context: Optional[str],
     ) -> str:
         """Blocking generation; caller should run inside a thread pool."""
+        if self._settings.mock_generation:
+            with self._lock:
+                return stub_chat_answer(role, message, context)
+
         import torch
 
         if not self.is_loaded or self._model is None or self._tokenizer is None:

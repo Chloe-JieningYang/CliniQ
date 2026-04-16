@@ -50,6 +50,11 @@ class Settings(BaseSettings):
         description="If true, lifespan skips GPU/PEFT load (for pytest / CI without CUDA).",
     )
 
+    mock_generation: bool = Field(
+        default=False,
+        description="If true, /chat returns a fixed stub string (no torch); for UI/API integration only.",
+    )
+
     @model_validator(mode="after")
     def fill_hf_token_from_env(self) -> "Settings":
         """Accept HF_TOKEN / HUGGING_FACE_HUB_TOKEN without CLINIQ_ prefix."""

@@ -26,13 +26,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Load LLM once at startup; release reference on shutdown."""
     settings = get_settings()
     service = LLMService(settings)
-    if not settings.skip_model_load:
+    if settings.mock_generation:
+        logger.info("CLINIQ_MOCK_GENERATION: stub chat replies (no PEFT / torch)")
+    elif not settings.skip_model_load:
         service.load()
     else:
         logger.info("CLINIQ_SKIP_MODEL_LOAD: skipping PEFT / GPU model load")
     app.state.llm_service = service
     if service.is_loaded:
-        logger.info("LLM ready at %s", settings.resolved_adapter_path())
+        if settings.mock_generation:
+            logger.info("Chat API ready (mock generation)")
+        else:
+            logger.info("LLM ready at %s", settings.resolved_adapter_path())
     else:
         logger.error("LLM not loaded: %s", service.load_error)
     try:

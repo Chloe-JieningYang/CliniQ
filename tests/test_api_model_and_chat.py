@@ -39,6 +39,8 @@ def test_model_info_without_override_reports_not_loaded() -> None:
         response = client.get("/api/v1/model")
     assert response.status_code == 200
     body = response.json()
+    assert body.get("mock_generation") is False
+    assert body.get("real_weights_loaded") is False
     assert body.get("loaded") is False
     assert "adapter_path" in body
 

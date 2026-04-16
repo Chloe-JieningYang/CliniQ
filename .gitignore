@@ -36,3 +36,7 @@ logs/
 # Dataset cache
 .cache/
 .huggingface/
+
+# Frontend
+web/node_modules/
+web/dist/

@@ -35,6 +35,21 @@ def build_user_content(message: str, context: Optional[str]) -> str:
     return message
 
 
+def stub_chat_answer(role: Role, message: str, context: Optional[str]) -> str:
+    """Fixed reply for CLINIQ_MOCK_GENERATION — no model call."""
+    role_label = "clinician" if role == "practitioner" else "patient"
+    preview = message.strip()[:120]
+    ctx_line = ""
+    if context and context.strip():
+        ctx_line = f"\nContext preview: {context.strip()[:120]}"
+    return (
+        "[Mock mode] No LLM weights are loaded; this is a fixed placeholder for API/UI integration.\n"
+        f"Audience: {role_label}.\n"
+        f"Question preview: {preview}{ctx_line}\n"
+        "Load real adapters and set CLINIQ_MOCK_GENERATION=false to see model-generated text here."
+    )
+
+
 def build_chat_messages(
     role: Role,
     message: str,
