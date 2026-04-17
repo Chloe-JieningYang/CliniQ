@@ -251,8 +251,10 @@ def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False
             base, quantization_config=bnb, torch_dtype=dtype,
             device_map=None, trust_remote_code=True,
         )
-        # Use local_files_only=True to force PEFT to treat path as local directory
-        model = PeftModel.from_pretrained(model, path, is_trainable=False, local_files_only=True)
+        # Load LoRA adapter using PeftConfig to avoid path validation issues
+        from peft import PeftConfig
+        peft_config = PeftConfig.from_pretrained(path)
+        model = PeftModel(model, peft_config)
         model = model.merge_and_unload()
 
         # Now it is a plain nn.Module — safe to dispatch across GPUs/CPU.
