@@ -494,10 +494,6 @@ def run_pairwise(
                 response_a=r1, response_b=r2
             )
             raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
-
-            print(f"\n--- Judge Raw Output (item {i}, pass {idx+1}) ---", flush=True)
-            print(raw, flush=True)
-            print("---------------------------------------------------\n", flush=True)
                         
             # Parse Verdict
             v = parse_pairwise(raw)
