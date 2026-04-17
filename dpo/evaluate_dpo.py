@@ -223,6 +223,7 @@ def build_prompt(instruction: str, input_text: str = "") -> str:
 
 
 def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False):
+    original_path = path  # Keep original path for PEFT (avoid absolute path validation error)
     path = str(Path(path).resolve())
     is_lora = (Path(path) / "adapter_config.json").exists()
 
@@ -251,7 +252,7 @@ def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False
             base, quantization_config=bnb, torch_dtype=dtype,
             device_map=None, trust_remote_code=True,
         )
-        model = PeftModel.from_pretrained(model, path, is_trainable=False)
+        model = PeftModel.from_pretrained(model, original_path, is_trainable=False)
         model = model.merge_and_unload()
 
         # Now it is a plain nn.Module — safe to dispatch across GPUs/CPU.
