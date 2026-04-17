@@ -78,9 +78,20 @@ python evaluate_dpo.py \
     --judge_model Qwen/Qwen2.5-7B-Instruct \
     --input_path ./eval_set/doctor_eval.json \
     --output_path eval_results.json \
-    --hf_token <your-hf-token> \
+    --hf_token ___ \
     --load_in_4bit True \
     --batch_size 8
+```
+
+```bash
+python evaluate_dpo.py \
+    --mode pairwise \
+    --judge_model Qwen/Qwen2.5-7B-Instruct \
+    --model_a ../sft_model \
+    --model_b ../dpo_model \
+    --input_path responses.json \
+    --output_path eval_results.json \
+    --hf_token ___
 ```
 
 Judges:
