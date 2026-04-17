@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 class ChatRequest(BaseModel):
     """User chat request."""
 
-    role: Literal["practitioner", "patient"] = Field(
+    role: Literal["doctor", "patient"] = Field(
         ...,
-        description="Audience: practitioner (clinical depth) or patient (plain language).",
+        description="Audience: doctor (clinical depth) or patient (plain language).",
     )
     message: str = Field(..., min_length=1, max_length=8000)
     context: Optional[str] = Field(
@@ -24,4 +24,4 @@ class ChatResponse(BaseModel):
     """Model reply."""
 
     answer: str
-    role: Literal["practitioner", "patient"]
+    role: Literal["doctor", "patient"]

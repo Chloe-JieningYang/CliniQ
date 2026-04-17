@@ -68,7 +68,7 @@ def test_chat_success_with_mock_llm() -> None:
             response = client.post(
                 "/api/v1/chat",
                 json={
-                    "role": "practitioner",
+                    "role": "doctor",
                     "message": "Differential for acute chest pain?",
                     "context": "Male, 55, smoker",
                 },
@@ -78,8 +78,8 @@ def test_chat_success_with_mock_llm() -> None:
 
     assert response.status_code == 200
     data = response.json()
-    assert data["role"] == "practitioner"
-    assert data["answer"].startswith("[mock]practitioner:")
+    assert data["role"] == "doctor"
+    assert data["answer"].startswith("[mock]doctor:")
     assert "ctx=" in data["answer"]
 
 

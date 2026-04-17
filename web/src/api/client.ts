@@ -3,7 +3,7 @@
  * backend/app/schemas/chat.py (ChatRequest / ChatResponse).
  */
 
-export type Role = "practitioner" | "patient";
+export type Role = "doctor" | "patient";
 
 export interface ChatRequestBody {
   role: Role;

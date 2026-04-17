@@ -109,14 +109,14 @@ export default function App() {
               <input
                 type="radio"
                 name="role"
-                value="practitioner"
-                checked={role === "practitioner"}
+                value="doctor"
+                checked={role === "doctor"}
                 onChange={() => {
-                  setRole("practitioner");
+                  setRole("doctor");
                 }}
               />
               <span className="role-card">
-                <strong>Clinician</strong>
+                <strong>Doctor</strong>
                 <span>Terminology and clinically denser detail</span>
               </span>
             </label>

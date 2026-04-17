@@ -2,9 +2,9 @@
 
 from typing import Any, List, Literal, Optional
 
-Role = Literal["practitioner", "patient"]
+Role = Literal["doctor", "patient"]
 
-_SYSTEM_PRACTITIONER = (
+_SYSTEM_DOCTOR = (
     "You are CliniQ, a medical knowledge assistant speaking to a licensed healthcare "
     "professional. Use precise clinical terminology where appropriate, cite mechanisms "
     "and guideline-style reasoning when useful, and mention relevant differential "
@@ -22,8 +22,8 @@ _SYSTEM_PATIENT = (
 
 def system_prompt_for_role(role: Role) -> str:
     """Return the system instruction for the selected audience."""
-    if role == "practitioner":
-        return _SYSTEM_PRACTITIONER
+    if role == "doctor":
+        return _SYSTEM_DOCTOR
     return _SYSTEM_PATIENT
 
 
@@ -37,7 +37,7 @@ def build_user_content(message: str, context: Optional[str]) -> str:
 
 def stub_chat_answer(role: Role, message: str, context: Optional[str]) -> str:
     """Fixed reply for CLINIQ_MOCK_GENERATION — no model call."""
-    role_label = "clinician" if role == "practitioner" else "patient"
+    role_label = "doctor" if role == "doctor" else "patient"
     preview = message.strip()[:120]
     ctx_line = ""
     if context and context.strip():
