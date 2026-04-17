@@ -238,7 +238,7 @@ def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False
     dtype = torch.float16 if not (load_in_4bit or load_in_8bit) else None
 
     if is_lora:
-        from peft import PeftModel
+        from peft import PeftModel, PeftConfig
         from accelerate import dispatch_model, infer_auto_device_map
 
         cfg = json.loads((Path(path) / "adapter_config.json").read_text())
@@ -251,8 +251,7 @@ def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False
             base, quantization_config=bnb, torch_dtype=dtype,
             device_map=None, trust_remote_code=True,
         )
-        # Load LoRA adapter using PeftConfig to avoid path validation issues
-        from peft import PeftConfig
+        # Use PeftConfig to bypass PEFT's repo ID validation for local paths
         peft_config = PeftConfig.from_pretrained(path)
         model = PeftModel(model, peft_config)
         model = model.merge_and_unload()
@@ -410,7 +409,7 @@ def generate_all_responses(
         for idx, resp in zip(batch_indices, batch_responses):
             responses[idx] = resp
         generated += len(batch_prompts)
-        print(f"  [Model {label}] {generated}/{total} responses generated…")
+        print(f"  [Model {label}] {generated}/{total} responses generated…", flush=True)
 
     return responses
 
@@ -492,9 +491,9 @@ def run_pairwise(
             )
             raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
 
-            print(f"\n--- Judge Raw Output (item {i}, pass {idx+1}) ---")
-            print(raw)
-            print("---------------------------------------------------\n")
+            print(f"\n--- Judge Raw Output (item {i}, pass {idx+1}) ---", flush=True)
+            print(raw, flush=True)
+            print("---------------------------------------------------\n", flush=True)
                         
             # Parse Verdict
             v = parse_pairwise(raw)
@@ -535,7 +534,7 @@ def run_pairwise(
             "verdicts": verdicts,
             "final": final
         })
-        print(f"  [{i}/{len(records)}] {final} | A:{wins_a} B:{wins_b} TIE:{ties}")
+        print(f"  [{i}/{len(records)}] {final} | A:{wins_a} B:{wins_b} TIE:{ties}", flush=True)
 
     # Calculate Summaries
     total = len(records)
