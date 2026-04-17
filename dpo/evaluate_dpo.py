@@ -191,7 +191,7 @@ def call_hf_judge(
             
             # If model is loading (503) or rate limited (429)
             if response.status_code in [503, 429]:
-                print(f"  Provider busy/loading ({response.status_code}), waiting {retry_delay * attempt}s...")
+                print(f"  Provider busy/loading ({response.status_code}), waiting {retry_delay * attempt}s...", flush=True)
                 time.sleep(retry_delay * attempt)
                 continue
             
@@ -200,14 +200,18 @@ def call_hf_judge(
                 print(f"Model {judge_model} not found on any Router provider.")
                 return "ERROR: MODEL_NOT_AVAILABLE"
 
+            if response.status_code == 400:
+                print(f"❌ 400 Bad Request. Response: {response.text[:500]}", flush=True)
+            
             response.raise_for_status()
             result = response.json()
             return result['choices'][0]['message']['content'].strip()
 
         except Exception as e:
             if attempt == retries:
-                print(f"❌ API Error: {e}")
+                print(f"❌ API Error (attempt {attempt}/{retries}): {e}", flush=True)
                 raise e
+            print(f"⚠️ Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
             time.sleep(retry_delay)
             
     return "ERROR: JUDGE_TIMEOUT"
