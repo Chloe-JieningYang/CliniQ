@@ -1,11 +1,10 @@
 """Application settings from environment variables."""
 
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal, Optional
 
-from pydantic import Field, model_validator
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,7 +29,15 @@ class Settings(BaseSettings):
         default=None,
         description="Directory containing PEFT adapter (adapter_config.json).",
     )
-    hf_token: Optional[str] = Field(default=None)
+    hf_token: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "CLINIQ_HF_TOKEN",
+            "HF_TOKEN",
+            "HUGGING_FACE_HUB_TOKEN",
+        ),
+        description="Hugging Face token; use HF_TOKEN in .env or CLINIQ_HF_TOKEN.",
+    )
 
     device_map: str = Field(default="cuda:0")
     torch_dtype: Literal["bfloat16", "float16", "float32"] = Field(default="bfloat16")
@@ -54,15 +61,6 @@ class Settings(BaseSettings):
         default=False,
         description="If true, /chat returns a fixed stub string (no torch); for UI/API integration only.",
     )
-
-    @model_validator(mode="after")
-    def fill_hf_token_from_env(self) -> "Settings":
-        """Accept HF_TOKEN / HUGGING_FACE_HUB_TOKEN without CLINIQ_ prefix."""
-        if self.hf_token is None:
-            token = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
-            if token:
-                object.__setattr__(self, "hf_token", token)
-        return self
 
     def resolved_adapter_path(self) -> Path:
         """Adapter directory; defaults to sft_adaptor under project root."""
