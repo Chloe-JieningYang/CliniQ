@@ -471,12 +471,9 @@ def run_pairwise(
     wins_a = wins_b = ties = errors = 0
     
     # Accumulators for rubric scores
-    metrics = ["acc", "comp", "clar", "safe"]
+    metrics = ["acc", "pers", "clar", "safe"]
     scores_a_total = {m: [] for m in metrics}
     scores_b_total = {m: [] for m in metrics}
-
-    # Regex to find: [Acc: 5, Comp: 4, Clar: 5, Safe: 5]
-    score_pattern = r"Response ([AB]):.*?Acc.*?(\d).*?Comp.*?(\d).*?Clar.*?(\d).*?Safe.*?(\d)"
 
     for i, (r, resp_a, resp_b) in enumerate(zip(records, responses_a, responses_b), 1):
         instruction = r.get("instruction", r.get("question", ""))
@@ -494,20 +491,35 @@ def run_pairwise(
                 response_a=r1, response_b=r2
             )
             raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
-            
+
+            print(f"\n--- Judge Raw Output (item {i}, pass {idx+1}) ---")
+            print(raw)
+            print("---------------------------------------------------\n")
+                        
             # Parse Verdict
             v = parse_pairwise(raw)
             verdicts.append(l1 if v == "A" else l2 if v == "B" else v)
 
             # Parse Rubric Scores (Only from the first pass to avoid double counting)
             if idx == 0:
-                matches = re.findall(score_pattern, raw, re.IGNORECASE | re.DOTALL)
-                for label, s_acc, s_comp, s_clar, s_safe in matches:
+                line_pattern = r"Response\s+([AB])\s*:\s*\[([^\]]+)\]"
+                for match in re.finditer(line_pattern, raw, re.IGNORECASE):
+                    label = match.group(1).upper()
+                    content = match.group(2)
+
+                    score_map = {}
+                    for kv in re.finditer(r"(\w+)\s*:\s*(\d)", content, re.IGNORECASE):
+                        score_map[kv.group(1).lower()] = int(kv.group(2))
+
                     target = scores_a_total if label == "A" else scores_b_total
-                    target["acc"].append(int(s_acc))
-                    target["comp"].append(int(s_comp))
-                    target["clar"].append(int(s_clar))
-                    target["safe"].append(int(s_safe))
+                    if "acc" in score_map:
+                        target["acc"].append(score_map["acc"])
+                    if "pers" in score_map:
+                        target["pers"].append(score_map["pers"])
+                    if "clar" in score_map:
+                        target["clar"].append(score_map["clar"])
+                    if "safe" in score_map:
+                        target["safe"].append(score_map["safe"])
 
         # Final decision: Both must agree or it is a TIE
         final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
@@ -603,17 +615,25 @@ def print_pairwise_summary(summary: dict, name_a: str, name_b: str, judge_model:
     print(f"  {name_a:<22} wins: {summary['model_a_wins']:>4}  ({summary['model_a_win_%']}%)")
     print(f"  {name_b:<22} wins: {summary['model_b_wins']:>4}  ({summary['model_b_win_%']}%)")
     print(f"  {'Ties':<22}     : {summary['ties']:>4}  ({summary['tie_%']}%)")
-    
+
     print("-" * 65)
-    print(f"{'Metric':<15} | {name_a[:18]:<20} | {name_b[:18]:<20}")
+    print(f"{'Metric':<20} | {name_a[:18]:<20} | {name_b[:18]:<20}")
     print("-" * 65)
-    for m in ["acc", "comp", "clar", "safe"]:
+
+    metric_labels = {
+        "acc":  "Accuracy",
+        "pers": "Persona Alignment",
+        "clar": "Clarity",
+        "safe": "Safety",
+    }
+
+    for m, label in metric_labels.items():
         val_a = summary["scores_a"].get(m, 0)
         val_b = summary["scores_b"].get(m, 0)
-        # Use bold or a star to indicate the winner per metric
         mark_a = "★" if val_a > val_b else " "
         mark_b = "★" if val_b > val_a else " "
-        print(f"{m.upper():<15} | {val_a:<18.2f} {mark_a} | {val_b:<18.2f} {mark_b}")
+        print(f"{label:<20} | {val_a:<18.2f} {mark_a} | {val_b:<18.2f} {mark_b}")  # ← inside loop
+
     print("=" * 65 + "\n")
 
 
