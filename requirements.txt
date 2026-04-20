@@ -25,7 +25,9 @@ langchain-core
 langchain-community
 langchain-huggingface
 langchain-text-splitters
-faiss-gpu
+# faiss-gpu has no reliable pip wheels for many Python/OS combos; faiss-cpu installs everywhere.
+# GPU Faiss (optional): use conda-forge `faiss-gpu` in a separate env, or build from source.
+faiss-cpu
 sentence-transformers
 tiktoken
 

@@ -51,13 +51,16 @@ def load_rag_retriever(index_path: str = "rag/faiss_index"):
     )
     start_time = time.time()
     vectorstore = FAISS.load_local(index_path, embedding_model, allow_dangerous_deserialization=True)
-    
-    # Convert CPU index to GPU index to speed up retrieval
-    cpu_index = vectorstore.index
-    res = faiss.StandardGpuResources()
-    gpu_index = faiss.index_cpu_to_gpu(res, 0, cpu_index)
-    vectorstore.index = gpu_index
-    
+
+    try:
+        cpu_index = vectorstore.index
+        res = faiss.StandardGpuResources()
+        gpu_index = faiss.index_cpu_to_gpu(res, 0, cpu_index)
+        vectorstore.index = gpu_index
+        print("RAG FAISS index on GPU")
+    except Exception as exc:  # noqa: BLE001 — faiss-cpu builds have no GPU API
+        print(f"RAG FAISS kept on CPU (GPU index unavailable): {exc}")
+
     print(f"Rag retriever loaded successfully after {time.time() - start_time:.2f} seconds!")
     return vectorstore
 
