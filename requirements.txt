@@ -19,6 +19,16 @@ bert-score
 sacrebleu
 rouge-score
 
+# RAG
+langchain
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+faiss-gpu
+sentence-transformers
+tiktoken
+
 # Optional: Jupyter
 jupyter
 
