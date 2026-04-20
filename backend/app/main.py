@@ -32,6 +32,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         service.load()
     else:
         logger.info("CLINIQ_SKIP_MODEL_LOAD: skipping PEFT / GPU model load")
+
+    if settings.rag_enabled and not settings.mock_generation:
+        service.load_rag()
+
     app.state.llm_service = service
     if service.is_loaded:
         if settings.mock_generation:

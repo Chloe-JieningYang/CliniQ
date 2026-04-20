@@ -62,11 +62,31 @@ class Settings(BaseSettings):
         description="If true, /chat returns a fixed stub string (no torch); for UI/API integration only.",
     )
 
+    rag_enabled: bool = Field(
+        default=False,
+        description="If true, load FAISS index at startup and prepend retrieved context before generation.",
+    )
+    rag_index_path: Optional[Path] = Field(
+        default=None,
+        description="Directory with FAISS index; default rag/faiss_index under project root.",
+    )
+    rag_top_k: int = Field(default=1, ge=1, le=32)
+    rag_embedding_model: str = Field(
+        default="sentence-transformers/all-MiniLM-L6-v2",
+        description="Same embedding model as rag/build_vector.py.",
+    )
+
     def resolved_adapter_path(self) -> Path:
         """Adapter directory; defaults to sft_adaptor under project root."""
         if self.adapter_path is not None:
             return Path(self.adapter_path).expanduser().resolve()
         return (self.project_root / "sft_adaptor").resolve()
+
+    def resolved_rag_index_path(self) -> Path:
+        """FAISS directory produced by rag/build_vector.py (default rag/faiss_index)."""
+        if self.rag_index_path is not None:
+            return Path(self.rag_index_path).expanduser().resolve()
+        return (self.project_root / "rag" / "faiss_index").resolve()
 
 
 @lru_cache

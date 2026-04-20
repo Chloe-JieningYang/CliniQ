@@ -20,6 +20,11 @@ from .prompts import (
     stub_chat_answer,
     system_prompt_for_role,
 )
+from .rag_service import (
+    load_rag_vectorstore,
+    merge_rag_and_client_context,
+    retrieve_rag_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +49,8 @@ class LLMService:
         self._load_error: Optional[str] = None
         self._adapter_path: Path = settings.resolved_adapter_path()
         self._lock = threading.Lock()
+        self._rag_vectorstore: Optional[Any] = None
+        self._rag_load_error: Optional[str] = None
 
     @property
     def is_loaded(self) -> bool:
@@ -121,6 +128,24 @@ class LLMService:
             if not hasattr(self._tokenizer, "pad_token_id") or self._tokenizer.pad_token_id is None:
                 self._tokenizer.pad_token_id = self._tokenizer.eos_token_id
 
+    def load_rag(self) -> None:
+        """Load optional FAISS retriever (eval/inference.py flow). Safe to skip if disabled or missing index."""
+        self._rag_load_error = None
+        self._rag_vectorstore = None
+        if not self._settings.rag_enabled:
+            return
+        if self._settings.mock_generation:
+            logger.info("RAG: skipped (mock generation)")
+            return
+
+        store, err = load_rag_vectorstore(self._settings)
+        self._rag_vectorstore = store
+        self._rag_load_error = err
+        if store is not None:
+            logger.info("RAG ready (top_k=%s)", self._settings.rag_top_k)
+        elif err:
+            logger.warning("RAG not available: %s", err)
+
     def model_card(self) -> Dict[str, Any]:
         """Non-secret summary for GET /api/v1/model."""
         real_weights = self._model is not None and self._tokenizer is not None
@@ -142,6 +167,12 @@ class LLMService:
                 card["base_model_name_or_path"] = cfg.get("base_model_name_or_path")
             except (OSError, json.JSONDecodeError):
                 card["base_model_name_or_path"] = None
+        card["rag_enabled"] = self._settings.rag_enabled
+        card["rag_index_path"] = str(self._settings.resolved_rag_index_path())
+        card["rag_top_k"] = self._settings.rag_top_k
+        card["rag_retriever_ready"] = self._rag_vectorstore is not None
+        if self._rag_load_error:
+            card["rag_error"] = self._rag_load_error
         return card
 
     def _build_prompt_string(self, role: Role, message: str, context: Optional[str]) -> str:
@@ -191,11 +222,20 @@ class LLMService:
         if not self.is_loaded or self._model is None or self._tokenizer is None:
             raise RuntimeError(self._load_error or "Model is not loaded")
 
-        prompt = self._build_prompt_string(role, message, context)
         tokenizer = self._tokenizer
         model = self._model
 
         with self._lock:
+            merged_context = context
+            if self._settings.rag_enabled and self._rag_vectorstore is not None:
+                rag_text = retrieve_rag_context(
+                    self._rag_vectorstore,
+                    message,
+                    int(self._settings.rag_top_k),
+                )
+                merged_context = merge_rag_and_client_context(rag_text, context)
+
+            prompt = self._build_prompt_string(role, message, merged_context)
             inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
             input_length = int(inputs.input_ids.shape[1])
 
