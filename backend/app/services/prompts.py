@@ -24,6 +24,17 @@ _SYSTEM_PATIENT = (
     "diagnoses. This is educational information only, not personal medical advice."
 )
 
+# When RAG or client supplies context, steer away from copying case studies / vignettes.
+_CONTEXT_USE_INSTRUCTIONS = (
+    "Use the reference material below.\n"
+    "Step 1: Normalize it—rewrite as general medical knowledge only; remove specific people, "
+    "patients, or studies; resolve pronouns (e.g., he, this study) into neutral clinical facts; "
+    "keep symptoms, causes, mechanisms, treatments, and outcomes; omit case-specific narrative.\n"
+    "Step 2: Using only that normalized knowledge, answer my question above. Do not mention "
+    "patients, studies, or cases as stories; give a concise, clinically relevant answer.\n\n"
+    "Context:\n{ctx}"
+)
+
 
 def dpo_user_role_prefix(role: Role) -> str:
     """Leading line used in DPO dataset prompts (must match training)."""
@@ -40,11 +51,13 @@ def system_prompt_for_role(role: Role) -> str:
 
 
 def build_user_content(role: Role, message: str, context: Optional[str]) -> str:
-    """Build user text: DPO role prefix, then question, then optional RAG/client context."""
+    """Build user text: DPO role prefix, question, then optional context with de-vignette steps."""
     prefix = dpo_user_role_prefix(role)
     body = message.strip()
     if context and context.strip():
-        return f"{prefix}\n{body}\nContext: {context.strip()}"
+        ctx = context.strip()
+        instructions = _CONTEXT_USE_INSTRUCTIONS.format(ctx=ctx)
+        return f"{prefix}\n{body}\n\n{instructions}"
     return f"{prefix}\n{body}"
 
 
