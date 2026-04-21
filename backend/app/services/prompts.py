@@ -1,4 +1,9 @@
-"""Role-specific system prompts and message construction."""
+"""Role-specific system prompts and message construction (DPO train/serve aligned).
+
+DPO training prepends a fixed self-role line at the start of each example's prompt
+(`I am a doctor.` / `I am a patient.`). The API mirrors that in the user turn so
+inference matches the distribution seen during preference optimization.
+"""
 
 from typing import Any, List, Literal, Optional
 
@@ -20,6 +25,13 @@ _SYSTEM_PATIENT = (
 )
 
 
+def dpo_user_role_prefix(role: Role) -> str:
+    """Leading line used in DPO dataset prompts (must match training)."""
+    if role == "doctor":
+        return "I am a doctor."
+    return "I am a patient."
+
+
 def system_prompt_for_role(role: Role) -> str:
     """Return the system instruction for the selected audience."""
     if role == "doctor":
@@ -27,12 +39,13 @@ def system_prompt_for_role(role: Role) -> str:
     return _SYSTEM_PATIENT
 
 
-def build_user_content(message: str, context: Optional[str]) -> str:
-    """Combine optional context with the user question (matches SFT-style user block)."""
-    message = message.strip()
+def build_user_content(role: Role, message: str, context: Optional[str]) -> str:
+    """Build user text: DPO role prefix, then question, then optional RAG/client context."""
+    prefix = dpo_user_role_prefix(role)
+    body = message.strip()
     if context and context.strip():
-        return f"{message}\nContext: {context.strip()}"
-    return message
+        return f"{prefix}\n{body}\nContext: {context.strip()}"
+    return f"{prefix}\n{body}"
 
 
 def stub_chat_answer(role: Role, message: str, context: Optional[str]) -> str:
@@ -44,7 +57,7 @@ def stub_chat_answer(role: Role, message: str, context: Optional[str]) -> str:
         ctx_line = f"\nContext preview: {context.strip()[:120]}"
     return (
         "[Mock mode] No LLM weights are loaded; this is a fixed placeholder for API/UI integration.\n"
-        f"Audience: {role_label}.\n"
+        f"Audience: {role_label} (DPO-style user prefix: {dpo_user_role_prefix(role)}).\n"
         f"Question preview: {preview}{ctx_line}\n"
         "Load real adapters and set CLINIQ_MOCK_GENERATION=false to see model-generated text here."
     )
@@ -58,5 +71,5 @@ def build_chat_messages(
     """Messages list for `tokenizer.apply_chat_template` (Llama 3 Instruct)."""
     return [
         {"role": "system", "content": system_prompt_for_role(role)},
-        {"role": "user", "content": build_user_content(message, context)},
+        {"role": "user", "content": build_user_content(role, message, context)},
     ]

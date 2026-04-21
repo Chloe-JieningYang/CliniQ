@@ -176,7 +176,7 @@ class LLMService:
         return card
 
     def _build_prompt_string(self, role: Role, message: str, context: Optional[str]) -> str:
-        """Render prompt: prefer native chat template; else SFT-aligned manual template."""
+        """Render prompt: prefer native chat template; else Llama-3-style manual template (DPO user prefix)."""
         messages = build_chat_messages(role, message, context)
         tok = self._tokenizer
         if tok is None:
@@ -197,7 +197,7 @@ class LLMService:
     def _fallback_prompt_no_template(self, role: Role, message: str, context: Optional[str]) -> str:
         """Match legacy `eval/inference.py` Llama-3-style layout (no separate system header)."""
         system = system_prompt_for_role(role)
-        user_block = build_user_content(message, context)
+        user_block = build_user_content(role, message, context)
         combined_user = f"{system}\n\n{user_block}"
         return (
             f"<|start_header_id|>user<|end_header_id|>\n"
@@ -234,6 +234,13 @@ class LLMService:
                     int(self._settings.rag_top_k),
                 )
                 merged_context = merge_rag_and_client_context(rag_text, context)
+
+            if self._settings.rag_log_merged_preview:
+                if merged_context:
+                    preview = merged_context[:240].replace("\n", "\\n")
+                    logger.info("Merged context for prompt: chars=%s preview=%s", len(merged_context), preview)
+                else:
+                    logger.info("Merged context for prompt: empty")
 
             prompt = self._build_prompt_string(role, message, merged_context)
             inputs = tokenizer(prompt, return_tensors="pt").to(model.device)

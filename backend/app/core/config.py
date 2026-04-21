@@ -75,12 +75,16 @@ class Settings(BaseSettings):
         default="sentence-transformers/all-MiniLM-L6-v2",
         description="Same embedding model as rag/build_vector.py.",
     )
+    rag_log_merged_preview: bool = Field(
+        default=False,
+        description="Dev only: log merged context length and a short preview at INFO (may contain PHI).",
+    )
 
     def resolved_adapter_path(self) -> Path:
-        """Adapter directory; defaults to sft_adaptor under project root."""
+        """Adapter directory; defaults to dpo_model (DPO LoRA) under project root."""
         if self.adapter_path is not None:
             return Path(self.adapter_path).expanduser().resolve()
-        return (self.project_root / "sft_adaptor").resolve()
+        return (self.project_root / "dpo_model").resolve()
 
     def resolved_rag_index_path(self) -> Path:
         """FAISS directory produced by rag/build_vector.py (default rag/faiss_index)."""
