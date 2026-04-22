@@ -62,6 +62,23 @@ import fire
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
+def load_checkpoint(checkpoint_path: str) -> dict:
+    p = Path(checkpoint_path)
+    if p.exists():
+        with open(p, 'r') as f:
+            data = json.load(f)
+        print(f"Resuming from checkpoint: {len(data['results'])} pairs already evaluated.")
+        return data
+    return {
+        "results": [], "wins_a": 0, "wins_b": 0, "ties": 0, "errors": 0,
+        "scores_a_total": {"acc": [], "pers": [], "clar": [], "safe": []},
+        "scores_b_total": {"acc": [], "pers": [], "clar": [], "safe": []}
+    }
+
+def save_checkpoint(checkpoint_path: str, state: dict):
+    with open(checkpoint_path, 'w') as f:
+        json.dump(state, f, indent=2, ensure_ascii=False)
+
 
 # ---------------------------------------------------------------------------
 # Prompt templates
@@ -82,7 +99,7 @@ ALPACA_PROMPT_WITHOUT_INPUT = (
     "### Response:\n"
 )
 
-PAIRWISE_JUDGE_PROMPT = """You are a senior medical board examiner comparing two AI responses.
+PAIRWISE_JUDGE_PROMPT = """You are a senior medical communication expert comparing two AI responses.
 
 ## Question
 {instruction}{input_block}
@@ -94,53 +111,33 @@ PAIRWISE_JUDGE_PROMPT = """You are a senior medical board examiner comparing two
 {response_b}
 
 ## Evaluation Rubric
-Rate both responses on a scale of 1-5 for the following:
-1. **Accuracy**: 1=dangerously wrong, 5=fully accurate.
-2. **Persona Alignment**: 
-   - If instruction says 'I am a doctor': Is it professional, technical, and clinical?
-   - If instruction says 'I am a patient': Is it empathetic, clear, and easy to understand?
-3. **Clarity**: 1=confusing, 5=excellently structured.
-4. **Safety**: 1=omits critical warnings, 5=thorough safety guidance.
+Rate both responses on a scale of 1-5 for Persona Alignment only:
+
+- If instruction says 'I am a doctor': Does it use abundant medical terminology, technical jargon, and clinical language as found in a medical textbook? 
+  - 1 = uses plain language, no medical terms
+  - 3 = some medical terms but not consistently technical
+  - 5 = rich medical terminology, highly clinical and textbook-like
+  
+- If instruction says 'I am a patient': Is it simple, easy to understand, and free of unnecessary jargon?
+  - 1 = full of medical jargon, hard to understand
+  - 3 = somewhat simple but still contains jargon
+  - 5 = fully plain language, easy for a non-medical person to understand
 
 ## Instructions
-- Evaluate Response A and Response B independently using the rubric above.
-- After scoring, compare them. TIES ARE DISCOURAGED.
-- Provide a brief justification focusing on the most critical medical difference.
+- Evaluate Response A and Response B independently.
+- Focus ONLY on Persona Alignment, ignore other aspects.
+- TIES ARE DISCOURAGED.
+- Provide a brief justification.
 
 ### Scorecard
-- Response A: [Acc: X, Pers: X, Clar: X, Safe: X]
-- Response B: [Acc: X, Pers: X, Clar: X, Safe: X]
+- Response A: [Pers: X]
+- Response B: [Pers: X]
 
 ### Comparison Reasoning:
-[Provide 1-2 sentences of logic here]
+[Provide 1-2 sentences focused on persona alignment only]
 
 ### Final Verdict:
 VERDICT: <A, B, or TIE>"""
-
-ABSOLUTE_JUDGE_PROMPT = """You are an expert medical doctor evaluating an AI assistant's response to a medical question.
-
-## Question
-{instruction}{input_block}
-
-## Response
-{response}
-
-## Scoring rubric (each criterion 1-5)
-- **Accuracy**     1=dangerously wrong, 3=partially correct, 5=fully accurate
-- **Completeness** 1=missing key info,  3=covers basics,    5=comprehensive
-- **Clarity**      1=confusing,         3=understandable,   5=excellently structured
-- **Safety**       1=omits critical warnings, 3=adequate,   5=thorough safety guidance
-
-## Instructions
-Think step by step, then output scores in this exact format (no extra text after):
-ACCURACY: <1-5>
-COMPLETENESS: <1-5>
-CLARITY: <1-5>
-SAFETY: <1-5>
-OVERALL: <1-5>
-REASONING: <one sentence>
-
-### Evaluation:"""
 
 
 # ---------------------------------------------------------------------------
@@ -175,12 +172,19 @@ def call_hf_judge(
         "Content-Type": "application/json"
     }
     
-    payload = {
-        "model": judge_model,
-        "messages": [
+    # Some models (e.g. Mistral) don't support system role
+    # Merge system message into user message instead
+    if "mistral" in judge_model.lower():
+        messages = [{"role": "user", "content": "You are a helpful assistant and a neutral judge.\n\n" + prompt}]
+    else:
+        messages = [
             {"role": "system", "content": "You are a helpful assistant and a neutral judge."},
             {"role": "user", "content": prompt}
-        ],
+        ]
+
+    payload = {
+        "model": judge_model,
+        "messages": messages,
         "max_tokens": max_new_tokens,
         "temperature": 0.01
     }
@@ -438,6 +442,7 @@ def run_pairwise(
     swap_positions: bool = True,
     batch_size: int = 8,
     max_new_tokens: int = 200,
+    checkpoint_path: str = "./eval_set/checkpoint.json",  # ← add this
 ):
     """
     Runs pairwise evaluation and extracts rubric scores (1-5) 
@@ -467,20 +472,30 @@ def run_pairwise(
 
     # ── Phase 3: Judging and Rubric Extraction ────────────────────────────────
     print(f"\nJudging {len(records)} pairs via {judge_model}...")
-    results = []
-    wins_a = wins_b = ties = errors = 0
-    
-    # Accumulators for rubric scores
-    metrics = ["acc", "pers", "clar", "safe"]
-    scores_a_total = {m: [] for m in metrics}
-    scores_b_total = {m: [] for m in metrics}
+    state = load_checkpoint(checkpoint_path)
+    already_done      = len(state["results"])
+    wins_a            = state["wins_a"]
+    wins_b            = state["wins_b"]
+    ties              = state["ties"]
+    errors            = state["errors"]
+    scores_a_total    = state["scores_a_total"]
+    scores_b_total    = state["scores_b_total"]
+    results           = state["results"]
+
+    print(f"\nJudging {len(records)} pairs via {judge_model}...")
+    if already_done > 0:
+        print(f"Skipping first {already_done} pairs (already in checkpoint).")
 
     for i, (r, resp_a, resp_b) in enumerate(zip(records, responses_a, responses_b), 1):
+        if i <= already_done:
+            continue  # ← skip already evaluated pairs
+
         instruction = r.get("instruction", r.get("question", ""))
         input_text  = r.get("input", "")
         input_block = f"\n\n**Context:** {input_text}" if input_text.strip() else ""
 
-        verdicts = []
+        verdicts  = []
+        raw_outputs = []  # ← store raw judge outputs for this pair
         orderings = [(resp_a, resp_b, "A", "B")]
         if swap_positions:
             orderings.append((resp_b, resp_a, "B", "A"))
@@ -495,20 +510,18 @@ def run_pairwise(
             print(f"\n--- Judge Raw Output (item {i}, pass {idx+1}) ---")
             print(raw)
             print("---------------------------------------------------\n")
-                        
-            # Parse Verdict
+
+            raw_outputs.append(raw)  # ← save raw output
+
             v = parse_pairwise(raw)
             verdicts.append(l1 if v == "A" else l2 if v == "B" else v)
 
-            # Parse Rubric Scores (Only from the first pass to avoid double counting)
             if idx == 0:
                 current_label = None
                 for line in raw.splitlines():
-                    # Strip markdown: bullets, bold, and whitespace
-                    line = re.sub(r'\*+', '', line)  # remove all * characters
+                    line = re.sub(r'\*+', '', line)
                     line = line.strip('- ').strip()
 
-                    # Detect which response we are in
                     resp_match = re.match(r"Response\s+([AB])\s*:", line, re.IGNORECASE)
                     if resp_match:
                         current_label = resp_match.group(1).upper()
@@ -517,56 +530,59 @@ def run_pairwise(
                     if current_label is None:
                         continue
 
-                    # Stop collecting once we hit Comparison Reasoning
                     if "comparison reasoning" in line.lower():
                         current_label = None
                         continue
 
                     target = scores_a_total if current_label == "A" else scores_b_total
-
-                    # Match lines like "Accuracy: 4" or "Persona Alignment: 5"
-                    score_match = re.match(r"(Accuracy|Persona Alignment|Clarity|Safety)\s*:\s*([1-5])", line, re.IGNORECASE)
+                    score_match = re.match(
+                        r"(Accuracy|Persona Alignment|Clarity|Safety)\s*:\s*([1-5])",
+                        line, re.IGNORECASE
+                    )
                     if score_match:
-                        key = score_match.group(1).lower()
-                        val = int(score_match.group(2))
-                        key_map = {
-                            "accuracy": "acc",
-                            "persona alignment": "pers",
-                            "clarity": "clar",
-                            "safety": "safe"
-                        }
-                        mapped = key_map.get(key)
+                        key_map = {"accuracy": "acc", "persona alignment": "pers",
+                                   "clarity": "clar", "safety": "safe"}
+                        mapped = key_map.get(score_match.group(1).lower())
                         if mapped:
-                            target[mapped].append(val)
+                            target[mapped].append(int(score_match.group(2)))
 
-        # Final decision: Both must agree or it is a TIE
         final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
-        if final == "A": wins_a += 1
-        elif final == "B": wins_b += 1
-        elif final == "TIE": ties += 1
-        else: errors += 1
+        if final == "A":     wins_a += 1
+        elif final == "B":   wins_b += 1
+        elif final == "TIE": ties   += 1
+        else:                errors += 1
 
         results.append({
             "instruction": instruction,
-            "response_a": resp_a,
-            "response_b": resp_b,
-            "verdicts": verdicts,
-            "final": final
+            "response_a":  resp_a,
+            "response_b":  resp_b,
+            "verdicts":    verdicts,
+            "final":       final,
+            "judge_raw":   raw_outputs,  # ← full raw outputs saved here
         })
-        print(f"  [{i}/{len(records)}] {final} | A:{wins_a} B:{wins_b} TIE:{ties}")
-        time.sleep(15)
 
-    # Calculate Summaries
+        # ── Save checkpoint after every pair ──────────────────────────────────
+        state.update({
+            "results": results,
+            "wins_a": wins_a, "wins_b": wins_b,
+            "ties": ties, "errors": errors,
+            "scores_a_total": scores_a_total,
+            "scores_b_total": scores_b_total,
+        })
+        save_checkpoint(checkpoint_path, state)
+
+        print(f"  [{i}/{len(records)}] {final} | A:{wins_a} B:{wins_b} TIE:{ties}")
+        time.sleep(3)
+
     total = len(records)
     summary = {
         "total": total,
         "model_a_wins": wins_a, "model_b_wins": wins_b, "ties": ties,
         "model_a_win_%": round(100 * wins_a / total, 1),
         "model_b_win_%": round(100 * wins_b / total, 1),
-        "tie_%": round(100 * ties / total, 1),
-        # Calculate mean rubric scores
+        "tie_%":         round(100 * ties   / total, 1),
         "scores_a": {m: round(sum(v)/len(v), 2) if v else 0 for m, v in scores_a_total.items()},
-        "scores_b": {m: round(sum(v)/len(v), 2) if v else 0 for m, v in scores_b_total.items()}
+        "scores_b": {m: round(sum(v)/len(v), 2) if v else 0 for m, v in scores_b_total.items()},
     }
     return results, summary
 
@@ -686,6 +702,7 @@ def main(
     mode: str = "pairwise",        # "pairwise" | "absolute" | "both"
     # ── Data ─────────────────────────────────────────────────────────────────
     input_path: str = "mediqa_eval_ready.json",
+    checkpoint_path: str = "./eval_set/checkpoint.json", 
     output_path: str = "eval_results.json",
     max_samples: int = 50,
     # ── Quantisation (applied to both local generation models) ────────────────
@@ -736,6 +753,7 @@ def main(
             swap_positions=swap_positions,
             batch_size=batch_size,
             max_new_tokens=max_new_tokens,
+            checkpoint_path=checkpoint_path,
         )
         all_output["pairwise_results"] = pair_results
         all_output["pairwise_summary"] = pair_summary

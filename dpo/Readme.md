@@ -92,18 +92,20 @@ python evaluate_dpo.py \
     --model_a ../sft_model \
     --model_b ../dpo_model \
     --input_path ./eval_set/doctor_responses.json \
-    --output_path ./doctor_eval_results.json \
+    --checkpoint_path ./eval_result/qwen/doctor_checkpoint.json \
+    --output_path ./eval_result/qwen/doctor_eval_results.json \
     --hf_token ___
 ```
 
 ```bash
 python evaluate_dpo.py \
     --mode pairwise \
-    --judge_model Qwen/Qwen2.5-7B-Instruct \
+    --judge_model meta-llama/Llama-3.1-8B-Instruct \
     --model_a ../sft_model \
     --model_b ../dpo_model \
     --input_path ./eval_set/patient_responses.json \
-    --output_path ./patient_eval_results.json \
+    --checkpoint_path ./eval_result/llama/patient_checkpoint.json \
+    --output_path ./eval_result/qwen/patient_eval_results.json \
     --hf_token ___
 ```
 
