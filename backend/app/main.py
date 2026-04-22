@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, List
 
@@ -15,6 +16,25 @@ from .core.config import get_settings
 from .services.llm_service import LLMService
 
 logger = logging.getLogger(__name__)
+
+
+def _configure_app_package_logging() -> None:
+    """Emit INFO for this app's loggers on stderr.
+
+    Uvicorn is usually started as `uvicorn app.main:app` (cwd: backend), so loggers are
+    `app.*`, not `backend.*`. Tests use `backend.*`. We attach to the top-level package
+    derived from this module's name.
+    """
+    root_pkg = __name__.split(".", maxsplit=1)[0]
+    pkg_log = logging.getLogger(root_pkg)
+    pkg_log.setLevel(logging.INFO)
+    if pkg_log.handlers:
+        return
+    handler = logging.StreamHandler(stream=sys.stderr)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s"))
+    pkg_log.addHandler(handler)
+    pkg_log.propagate = False
 
 
 def _parse_cors_origins(raw: str) -> List[str]:
@@ -51,6 +71,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app() -> FastAPI:
+    _configure_app_package_logging()
     settings = get_settings()
     app = FastAPI(
         title="CliniQ API",
