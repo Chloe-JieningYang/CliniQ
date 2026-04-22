@@ -76,11 +76,24 @@ python evaluate_dpo.py \
     --model_a ../sft_model \
     --model_b ../dpo_model \
     --judge_model Qwen/Qwen2.5-7B-Instruct \
-    --input_path ./eval_set/doctor_eval.json \
-    --output_path eval_results.json \
+    --input_path ./eval_set/patient_eval.json \
+    --output_path ./patient_eval_results.json \
     --hf_token ___ \
     --load_in_4bit True \
     --batch_size 8
+```
+
+Eval with responses already generated:
+
+```bash
+python evaluate_dpo.py \
+    --mode pairwise \
+    --judge_model Qwen/Qwen2.5-7B-Instruct \
+    --model_a ../sft_model \
+    --model_b ../dpo_model \
+    --input_path ./eval_set/doctor_responses.json \
+    --output_path ./doctor_eval_results.json \
+    --hf_token ___
 ```
 
 ```bash
@@ -89,8 +102,8 @@ python evaluate_dpo.py \
     --judge_model Qwen/Qwen2.5-7B-Instruct \
     --model_a ../sft_model \
     --model_b ../dpo_model \
-    --input_path responses.json \
-    --output_path eval_results.json \
+    --input_path ./eval_set/patient_responses.json \
+    --output_path ./patient_eval_results.json \
     --hf_token ___
 ```
 

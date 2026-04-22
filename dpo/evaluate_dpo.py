@@ -212,6 +212,9 @@ def call_hf_judge(
             
     return "ERROR: JUDGE_TIMEOUT"
 
+
+
+
 # ---------------------------------------------------------------------------
 # Local model helpers  (generation only — no longer used for judging)
 # ---------------------------------------------------------------------------
@@ -460,7 +463,7 @@ def run_pairwise(
         m_b, t_b = load_model(model_b_path, load_in_4bit, load_in_8bit)
         responses_b = generate_all_responses(m_b, t_b, records, "B", batch_size, max_new_tokens)
         unload_model(m_b)
-        save_generated_responses(records, responses_a, responses_b, "responses.json")
+        save_generated_responses(records, responses_a, responses_b, "./eval_set/responses.json")
 
     # ── Phase 3: Judging and Rubric Extraction ────────────────────────────────
     print(f"\nJudging {len(records)} pairs via {judge_model}...")
@@ -499,24 +502,42 @@ def run_pairwise(
 
             # Parse Rubric Scores (Only from the first pass to avoid double counting)
             if idx == 0:
-                line_pattern = r"Response\s+([AB])\s*:\s*\[([^\]]+)\]"
-                for match in re.finditer(line_pattern, raw, re.IGNORECASE):
-                    label = match.group(1).upper()
-                    content = match.group(2)
+                current_label = None
+                for line in raw.splitlines():
+                    # Strip markdown: bullets, bold, and whitespace
+                    line = re.sub(r'\*+', '', line)  # remove all * characters
+                    line = line.strip('- ').strip()
 
-                    score_map = {}
-                    for kv in re.finditer(r"(\w+)\s*:\s*(\d)", content, re.IGNORECASE):
-                        score_map[kv.group(1).lower()] = int(kv.group(2))
+                    # Detect which response we are in
+                    resp_match = re.match(r"Response\s+([AB])\s*:", line, re.IGNORECASE)
+                    if resp_match:
+                        current_label = resp_match.group(1).upper()
+                        continue
 
-                    target = scores_a_total if label == "A" else scores_b_total
-                    if "acc" in score_map:
-                        target["acc"].append(score_map["acc"])
-                    if "pers" in score_map:
-                        target["pers"].append(score_map["pers"])
-                    if "clar" in score_map:
-                        target["clar"].append(score_map["clar"])
-                    if "safe" in score_map:
-                        target["safe"].append(score_map["safe"])
+                    if current_label is None:
+                        continue
+
+                    # Stop collecting once we hit Comparison Reasoning
+                    if "comparison reasoning" in line.lower():
+                        current_label = None
+                        continue
+
+                    target = scores_a_total if current_label == "A" else scores_b_total
+
+                    # Match lines like "Accuracy: 4" or "Persona Alignment: 5"
+                    score_match = re.match(r"(Accuracy|Persona Alignment|Clarity|Safety)\s*:\s*([1-5])", line, re.IGNORECASE)
+                    if score_match:
+                        key = score_match.group(1).lower()
+                        val = int(score_match.group(2))
+                        key_map = {
+                            "accuracy": "acc",
+                            "persona alignment": "pers",
+                            "clarity": "clar",
+                            "safety": "safe"
+                        }
+                        mapped = key_map.get(key)
+                        if mapped:
+                            target[mapped].append(val)
 
         # Final decision: Both must agree or it is a TIE
         final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
@@ -533,6 +554,7 @@ def run_pairwise(
             "final": final
         })
         print(f"  [{i}/{len(records)}] {final} | A:{wins_a} B:{wins_b} TIE:{ties}")
+        time.sleep(15)
 
     # Calculate Summaries
     total = len(records)
