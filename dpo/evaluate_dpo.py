@@ -158,6 +158,60 @@ import requests
 import json
 import time
 
+# For Gemini API
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
+
+def call_gemini_judge(
+    prompt: str,
+    gemini_api_key: str,
+    model: str = "gemini-2.5-flash",
+    max_tokens: int = 512,
+    retries: int = 5,
+    retry_delay: float = 10.0,
+) -> str:
+    """Call Gemini API for judge evaluation"""
+    if not gemini_api_key:
+        raise ValueError("GEMINI_API_KEY environment variable not set")
+    
+    if genai is None:
+        raise ImportError("google-generativeai not installed. Run: pip install google-generativeai")
+    
+    genai.configure(api_key=gemini_api_key)
+    
+    # Add "models/" prefix if not already present
+    if not model.startswith("models/"):
+        model = f"models/{model}"
+    
+    for attempt in range(1, retries + 1):
+        try:
+            client = genai.GenerativeModel(model)
+            response = client.generate_content(
+                prompt,
+                generation_config={
+                    "max_output_tokens": max_tokens,
+                    "temperature": 0.01,
+                }
+            )
+            return response.text.strip()
+        
+        except Exception as e:
+            if "429" in str(e) or "rate" in str(e).lower():
+                print(f"⚠️ Rate limited. Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
+                time.sleep(retry_delay * attempt)
+                continue
+            
+            if attempt == retries:
+                print(f"❌ Gemini API Error (attempt {attempt}/{retries}): {e}", flush=True)
+                raise e
+            
+            print(f"⚠️ Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
+            time.sleep(retry_delay)
+    
+    return "ERROR: GEMINI_TIMEOUT"
+
 def call_hf_judge(
     prompt: str,
     hf_token: str,
@@ -441,6 +495,7 @@ def run_pairwise(
     swap_positions: bool = True,
     batch_size: int = 8,
     max_new_tokens: int = 200,
+    gemini_api_key: str = None,
 ):
     """
     Runs pairwise evaluation and extracts rubric scores (1-5) 
@@ -493,7 +548,12 @@ def run_pairwise(
                 instruction=instruction, input_block=input_block,
                 response_a=r1, response_b=r2
             )
-            raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
+            
+            # Use Gemini if available, otherwise use HF Router
+            if gemini_api_key and judge_model.startswith("gemini"):
+                raw = call_gemini_judge(judge_prompt, gemini_api_key=gemini_api_key, model=judge_model)
+            else:
+                raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
                         
             # Parse Verdict
             v = parse_pairwise(raw)
@@ -659,9 +719,11 @@ def main(
     # ── Free HuggingFace judge ────────────────────────────────────────────────
     judge_model: str = "mistralai/Mistral-7B-Instruct-v0.3",
     #   Other good free options:
-    #     "HuggingFaceH4/zephyr-7b-beta"
+    #     "Qwen/Qwen2.5-7B-Instruct"
     #     "meta-llama/Llama-3.1-8B-Instruct"  (requires HF access request)
+    #     "gemini-2.5-flash"  (requires GEMINI_API_KEY env var, FREE tier available)
     hf_token: str = "",             # or set HF_TOKEN env var
+    gemini_api_key: str = "",       # or set GEMINI_API_KEY env var
     # ── Evaluation mode ───────────────────────────────────────────────────────
     mode: str = "pairwise",        # "pairwise" | "absolute" | "both"
     # ── Data ─────────────────────────────────────────────────────────────────
@@ -682,12 +744,22 @@ def main(
 ):
     # ── Resolve HF token ──────────────────────────────────────────────────────
     token = hf_token or os.environ.get("HF_TOKEN", "")
-    if not token:
+    if not token and not judge_model.startswith("gemini"):
         sys.exit(
             "HuggingFace token required.\n"
             "  Pass --hf_token hf_...  or  export HF_TOKEN=hf_...\n"
             "  Get a free token at: https://huggingface.co/settings/tokens"
         )
+
+    # ── Resolve Gemini API key ────────────────────────────────────────────────
+    gemini_key = gemini_api_key or os.environ.get("GEMINI_API_KEY", "")
+    if judge_model.startswith("gemini") and not gemini_key:
+        sys.exit(
+            "Gemini API key required for gemini models.\n"
+            "  Pass --gemini_api_key ...  or  export GEMINI_API_KEY=...\n"
+            "  Get a free key at: https://aistudio.google.com"
+        )
+
 
     # ── Validate args ─────────────────────────────────────────────────────────
     if not model_a:
@@ -716,6 +788,7 @@ def main(
             swap_positions=swap_positions,
             batch_size=batch_size,
             max_new_tokens=max_new_tokens,
+            gemini_api_key=gemini_key,
         )
         all_output["pairwise_results"] = pair_results
         all_output["pairwise_summary"] = pair_summary
