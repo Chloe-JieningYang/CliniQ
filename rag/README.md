@@ -16,3 +16,17 @@ Note: The data used in our experiment is already indexed and stored under `faiss
 # RAG Retrieval
 
 1. Run `python retriever.py` to test if the retriever is working, or directly run from `eval/inference.py` to generate CliniQ results with contexts retrieved from RAG.
+
+# Evaluation
+
+1. Run usmle accuracy:
+
+```bash
+python ./eval_usmle/eval_usmle.py     --base_model "meta-llama/Llama-3.1-8B-Instruct"     --model_name "../dpo_model/dpo_model"     --prompt_template "./eval_usmle/medalpaca/prompt_templates/medalpaca.json"     --peft True     --load_in_8bit True     --path_to_exams "./eval_usmle/medalpaca/data/test/"
+```
+
+2. Run faithfulness:
+
+```bash
+python eval_faithfulness.py
+```
