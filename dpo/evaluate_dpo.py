@@ -71,8 +71,8 @@ def load_checkpoint(checkpoint_path: str) -> dict:
         return data
     return {
         "results": [], "wins_a": 0, "wins_b": 0, "ties": 0, "errors": 0,
-        "scores_a_total": {"acc": [], "pers": [], "clar": [], "safe": []},
-        "scores_b_total": {"acc": [], "pers": [], "clar": [], "safe": []}
+        "scores_a_total": {"pers": []},
+        "scores_b_total": {"pers": []}
     }
 
 def save_checkpoint(checkpoint_path: str, state: dict):
@@ -517,34 +517,16 @@ def run_pairwise(
             verdicts.append(l1 if v == "A" else l2 if v == "B" else v)
 
             if idx == 0:
-                current_label = None
                 for line in raw.splitlines():
                     line = re.sub(r'\*+', '', line)
                     line = line.strip('- ').strip()
-
-                    resp_match = re.match(r"Response\s+([AB])\s*:", line, re.IGNORECASE)
-                    if resp_match:
-                        current_label = resp_match.group(1).upper()
-                        continue
-
-                    if current_label is None:
-                        continue
-
-                    if "comparison reasoning" in line.lower():
-                        current_label = None
-                        continue
-
-                    target = scores_a_total if current_label == "A" else scores_b_total
-                    score_match = re.match(
-                        r"(Accuracy|Persona Alignment|Clarity|Safety)\s*:\s*([1-5])",
-                        line, re.IGNORECASE
-                    )
-                    if score_match:
-                        key_map = {"accuracy": "acc", "persona alignment": "pers",
-                                   "clarity": "clar", "safety": "safe"}
-                        mapped = key_map.get(score_match.group(1).lower())
-                        if mapped:
-                            target[mapped].append(int(score_match.group(2)))
+                    # Match: - Response A: [Pers: X]
+                    m = re.match(r"Response\s+([AB])\s*:\s*\[Pers:\s*([1-5])\]", line, re.IGNORECASE)
+                    if m:
+                        label = m.group(1).upper()
+                        val = int(m.group(2))
+                        target = scores_a_total if label == "A" else scores_b_total
+                        target["pers"].append(val)
 
         final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
         if final == "A":     wins_a += 1
