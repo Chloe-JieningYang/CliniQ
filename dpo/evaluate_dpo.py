@@ -217,8 +217,8 @@ def call_hf_judge(
     hf_token: str,
     judge_model: str = "Qwen/Qwen2.5-7B-Instruct", # Most stable for 2026 Router
     max_new_tokens: int = 512,
-    retries: int = 5,
-    retry_delay: float = 10.0,
+    retries: int = 10,
+    retry_delay: float = 15.0,
 ) -> str:
     # THE 2026 UNIFIED ROUTER URL
     # This automatically picks the best provider (HF, Together, Sambanova, etc.)
@@ -241,12 +241,13 @@ def call_hf_judge(
 
     for attempt in range(1, retries + 1):
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=120)
+            response = requests.post(url, headers=headers, json=payload, timeout=180)
             
             # If model is loading (503) or rate limited (429)
             if response.status_code in [503, 429]:
-                print(f"  Provider busy/loading ({response.status_code}), waiting {retry_delay * attempt}s...", flush=True)
-                time.sleep(retry_delay * attempt)
+                wait_time = retry_delay * (2 ** (attempt - 1))  # exponential backoff
+                print(f"  ⏳ Provider busy/loading ({response.status_code}), retry {attempt}/{retries} in {wait_time}s...", flush=True)
+                time.sleep(wait_time)
                 continue
             
             # If the model simply isn't available on the router at all
@@ -261,12 +262,21 @@ def call_hf_judge(
             result = response.json()
             return result['choices'][0]['message']['content'].strip()
 
+        except requests.exceptions.Timeout as e:
+            if attempt == retries:
+                print(f"❌ API Timeout (attempt {attempt}/{retries}): {e}", flush=True)
+                raise e
+            wait_time = retry_delay * (2 ** (attempt - 1))
+            print(f"⏳ Timeout, retry {attempt}/{retries} in {wait_time}s...", flush=True)
+            time.sleep(wait_time)
+        
         except Exception as e:
             if attempt == retries:
                 print(f"❌ API Error (attempt {attempt}/{retries}): {e}", flush=True)
                 raise e
-            print(f"⚠️ Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
-            time.sleep(retry_delay)
+            wait_time = retry_delay * (2 ** (attempt - 1))
+            print(f"⚠️ Retry {attempt}/{retries} in {wait_time}s...", flush=True)
+            time.sleep(wait_time)
             
     return "ERROR: JUDGE_TIMEOUT"
 
@@ -458,6 +468,11 @@ def generate_all_responses(
 
     total = len(pending_prompts)
     generated = 0
+    
+    if total == 0:
+        print(f"  [Model {label}] All {len(records)} responses cached, skipping generation.")
+        return responses
+    
     for batch_start in range(0, total, batch_size):
         batch_prompts  = pending_prompts[batch_start: batch_start + batch_size]
         batch_indices  = pending_indices[batch_start: batch_start + batch_size]
@@ -551,9 +566,13 @@ def run_pairwise(
             
             # Use Gemini if available, otherwise use HF Router
             if gemini_api_key and judge_model.startswith("gemini"):
+                print(f"    [Judge pass {idx+1}/2] Calling Gemini...", end=" ", flush=True)
                 raw = call_gemini_judge(judge_prompt, gemini_api_key=gemini_api_key, model=judge_model)
+                print("✓", flush=True)
             else:
+                print(f"    [Judge pass {idx+1}/2] Calling {judge_model}...", end=" ", flush=True)
                 raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
+                print("✓", flush=True)
                         
             # Parse Verdict
             v = parse_pairwise(raw)
