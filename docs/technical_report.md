@@ -405,16 +405,3 @@ CliniQ/
     ├── dpo_final/                      # 最终 DPO 模型 / final model
     └── ablation/                       # 消融实验模型 / ablation models (9 runs)
 ```
-
----
-
-## 10. 局限性与改进方向 / Limitations and Future Work
-
-| 方面 / Aspect | 当前局限 / Limitation | 改进方向 / Improvement |
-|------|---------|---------|
-| 偏好数据 / Preference data | Rule-based 退化过于人工；model-based 依赖温度差 / Rule degradation is artificial; model-based relies on temp gap | 使用 GPT-4 或专业医生标注 / Use GPT-4 or professional medical annotations |
-| 评估 / Evaluation | Judge 与被评估模型共享底座 / Judge shares base model (self-preference bias) | 不同架构 judge + 人类评估交叉验证 / Different-arch judges + human eval cross-validation |
-| Prompt 不一致 / Mismatch | SFT 用 Llama 3 chat，DPO 用 Alpaca / SFT uses Llama 3 chat, DPO uses Alpaca | 统一格式 / Unify prompt format |
-| 安全性 / Safety | Safety 维度略有下降 / Safety slightly decreases | 增加 safety-specific 偏好对 / Add safety-specific preference pairs |
-| 规模 / Scale | 单卡 L4，数据量有限 / Single L4, limited data | 多卡 + 更大数据集 / Multi-GPU + larger datasets |
-| DPO 变体 / Variants | 仅用原始 DPO / Only original sigmoid DPO | 尝试 SimPO / ORPO / Iterative DPO / Explore alternatives |
