@@ -50,6 +50,7 @@ Usage:
     # (if present, generation for that model is skipped).
 """
 
+import ast
 import json
 import os
 import re
@@ -527,14 +528,20 @@ def parse_pairwise(text: str) -> str:
 
 def _extract_json_payload(text: str):
     text = text.strip()
-    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.IGNORECASE | re.DOTALL)
+
+    fenced = re.search(r"```(?:json)?\s*(.*?)\s*```", text, re.IGNORECASE | re.DOTALL)
     if fenced:
         text = fenced.group(1).strip()
-    elif not text.startswith("{"):
-        inline = re.search(r"(\{.*\})", text, re.DOTALL)
-        if inline:
-            text = inline.group(1).strip()
-    return json.loads(text)
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start:end + 1]
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return ast.literal_eval(text)
 
 
 def _normalize_score_map(data: dict) -> dict[str, int]:
@@ -552,38 +559,64 @@ def _normalize_score_map(data: dict) -> dict[str, int]:
     normalized = {}
     for key, value in (data or {}).items():
         mapped = aliases.get(str(key).strip().lower())
-        if mapped and isinstance(value, int) and 1 <= value <= 5:
+        if not mapped:
+            continue
+
+        if isinstance(value, str) and value.strip().isdigit():
+            value = int(value.strip())
+
+        if isinstance(value, int) and 1 <= value <= 5:
             normalized[mapped] = value
     return normalized
 
 
-def parse_pairwise_json(text: str) -> dict | None:
+def _normalize_verdict(value) -> str:
+    verdict = str(value or "").strip().upper()
+    verdict = verdict.replace("_", " ")
+    verdict = re.sub(r"\s+", " ", verdict)
+    verdict = re.sub(r"^(RESPONSE|MODEL)\s+", "", verdict)
+    verdict = verdict.strip()
+    if verdict in {"A", "B", "TIE"}:
+        return verdict
+    if verdict == "RESPONSE A":
+        return "A"
+    if verdict == "RESPONSE B":
+        return "B"
+    return ""
+
+
+def parse_pairwise_json(text: str) -> tuple[dict | None, str | None]:
     try:
         payload = _extract_json_payload(text)
-    except Exception:
-        return None
+    except Exception as e:
+        return None, f"JSON decode failed: {e}"
 
     if not isinstance(payload, dict):
-        return None
+        return None, "Top-level payload is not a JSON object"
 
-    verdict = str(payload.get("verdict", "")).strip().upper()
-    verdict = re.sub(r"^RESPONSE\s+", "", verdict)
+    verdict = _normalize_verdict(
+        payload.get("verdict") or payload.get("final_verdict") or payload.get("winner")
+    )
     if verdict not in {"A", "B", "TIE"}:
-        return None
+        return None, f"Invalid or missing verdict: {payload.get('verdict')!r}"
 
-    scores_a = _normalize_score_map(payload.get("response_a", {}))
-    scores_b = _normalize_score_map(payload.get("response_b", {}))
+    scores_a = _normalize_score_map(
+        payload.get("response_a", {}) or payload.get("a", {}) or payload.get("scores_a", {})
+    )
+    scores_b = _normalize_score_map(
+        payload.get("response_b", {}) or payload.get("b", {}) or payload.get("scores_b", {})
+    )
     if not all(metric in scores_a for metric in ("acc", "pers", "clar", "safe")):
-        return None
+        return None, f"response_a missing metrics: {scores_a}"
     if not all(metric in scores_b for metric in ("acc", "pers", "clar", "safe")):
-        return None
+        return None, f"response_b missing metrics: {scores_b}"
 
     return {
         "verdict": verdict,
         "scores_a": scores_a,
         "scores_b": scores_b,
         "reasoning": str(payload.get("reasoning", "")).strip(),
-    }
+    }, None
 
 
 def parse_absolute(text: str) -> dict:
@@ -750,15 +783,17 @@ def run_pairwise(
                 print("✓", flush=True)
                         
             if use_structured_judge:
-                parsed_json = parse_pairwise_json(raw)
+                parsed_json, parse_error_reason = parse_pairwise_json(raw)
                 v = parsed_json["verdict"] if parsed_json else "PARSE_ERROR"
             else:
                 parsed_json = None
+                parse_error_reason = None
                 v = parse_pairwise(raw)
 
             if v == "PARSE_ERROR":
                 preview = re.sub(r"\s+", " ", raw).strip()[:300]
-                print(f"    [Parse warning] Could not parse verdict. Raw preview: {preview}", flush=True)
+                extra = f" Reason: {parse_error_reason}." if parse_error_reason else ""
+                print(f"    [Parse warning] Could not parse verdict.{extra} Raw preview: {preview}", flush=True)
             verdicts.append(l1 if v == "A" else l2 if v == "B" else v)
             judge_passes.append({
                 "pass_index": idx + 1,
