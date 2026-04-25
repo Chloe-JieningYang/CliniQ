@@ -5,13 +5,11 @@ from datasets import load_dataset
 def convert_huggingface_to_eval(output_path="mediqa_eval_ready.json", max_samples=100):
     print("Fetching medalpaca/medical_meadow_mediqa from Hugging Face Hub...")
     
-    # Load the dataset
-    # This dataset only has a 'train' split
+
     dataset = load_dataset("medalpaca/medical_meadow_mediqa", split="train")
     
     eval_data = []
-    
-    # The dataset uses standard Alpaca keys: 'instruction', 'input', 'output'
+
     for i, entry in enumerate(dataset):
         if max_samples > 0 and i >= max_samples:
             break
@@ -19,7 +17,7 @@ def convert_huggingface_to_eval(output_path="mediqa_eval_ready.json", max_sample
         eval_data.append({
             "instruction": entry["instruction"],
             "input": entry["input"],
-            "reference": entry["output"] # The 'gold' answer
+            "reference": entry["output"]
         })
 
     with open(output_path, "w", encoding="utf-8") as f:

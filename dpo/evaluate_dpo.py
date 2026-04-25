@@ -141,17 +141,6 @@ REASONING: <one sentence>
 ### Evaluation:"""
 
 
-# ---------------------------------------------------------------------------
-# Free HuggingFace Inference API judge
-# ---------------------------------------------------------------------------
-#
-# Recommended free judge models (pass as --judge_model):
-#   mistralai/Mistral-7B-Instruct-v0.3   ← no access request needed
-#   HuggingFaceH4/zephyr-7b-beta         ← no access request needed
-#   meta-llama/Llama-3.1-8B-Instruct     ← requires HF access request
-#
-# Get a free token at: https://huggingface.co/settings/tokens
-
 import requests
 import json
 import time
@@ -159,13 +148,11 @@ import time
 def call_hf_judge(
     prompt: str,
     hf_token: str,
-    judge_model: str = "Qwen/Qwen2.5-7B-Instruct", # Most stable for 2026 Router
+    judge_model: str = "Qwen/Qwen2.5-7B-Instruct", 
     max_new_tokens: int = 512,
     retries: int = 5,
     retry_delay: float = 10.0,
 ) -> str:
-    # THE 2026 UNIFIED ROUTER URL
-    # This automatically picks the best provider (HF, Together, Sambanova, etc.)
     url = "https://router.huggingface.co/v1/chat/completions"
     
     headers = {
@@ -187,13 +174,11 @@ def call_hf_judge(
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=120)
             
-            # If model is loading (503) or rate limited (429)
             if response.status_code in [503, 429]:
                 print(f"  Provider busy/loading ({response.status_code}), waiting {retry_delay * attempt}s...")
                 time.sleep(retry_delay * attempt)
                 continue
-            
-            # If the model simply isn't available on the router at all
+
             if response.status_code == 404:
                 print(f"Model {judge_model} not found on any Router provider.")
                 return "ERROR: MODEL_NOT_AVAILABLE"
@@ -204,14 +189,14 @@ def call_hf_judge(
 
         except Exception as e:
             if attempt == retries:
-                print(f"❌ API Error: {e}")
+                print(f"API Error: {e}")
                 raise e
             time.sleep(retry_delay)
             
     return "ERROR: JUDGE_TIMEOUT"
 
 # ---------------------------------------------------------------------------
-# Local model helpers  (generation only — no longer used for judging)
+# Local model helpers 
 # ---------------------------------------------------------------------------
 
 def build_prompt(instruction: str, input_text: str = "") -> str:
@@ -252,9 +237,6 @@ def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False
         model = PeftModel.from_pretrained(model, path, is_trainable=False)
         model = model.merge_and_unload()
 
-        # Now it is a plain nn.Module — safe to dispatch across GPUs/CPU.
-        # Pass class names as plain strings; avoids the set-hashing bug in
-        # accelerate <= 0.29 where sets were passed instead of lists.
         no_split = [
             "LlamaDecoderLayer", "MistralDecoderLayer",
             "Qwen2DecoderLayer", "FalconDecoderLayer",
@@ -282,7 +264,7 @@ def load_model(path: str, load_in_4bit: bool = False, load_in_8bit: bool = False
 
 def generate_batch(
     model, tokenizer, prompts: list,
-    max_new_tokens: int = 200,   # 200 is plenty for eval; 512 was the bottleneck
+    max_new_tokens: int = 200,  
     temperature: float = 0.1,
     top_p: float = 0.75,
 ) -> list:
@@ -303,7 +285,6 @@ def generate_batch(
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id,
         )
-    # Decode only the newly generated tokens for each item in the batch
     return [
         tokenizer.decode(out[i, input_len:], skip_special_tokens=True).strip()
         for i in range(len(prompts))
@@ -380,7 +361,6 @@ def generate_all_responses(
     Batching amortises the per-call overhead and keeps the GPU saturated,
     cutting total generation time by ~batch_size× vs one-at-a-time.
     """
-    # Separate pre-cached from records that need generation
     responses = [None] * len(records)
     pending_indices, pending_prompts = [], []
 
@@ -412,7 +392,6 @@ def generate_all_responses(
 def save_generated_responses(records, responses_a, responses_b, filename="generated_outputs.json"):
     combined_data = []
     for i, r in enumerate(records):
-        # Create a new record that includes the original data + the new responses
         new_entry = r.copy()
         new_entry["response_a"] = responses_a[i]
         new_entry["response_b"] = responses_b[i]
@@ -438,7 +417,6 @@ def run_pairwise(
     Runs pairwise evaluation and extracts rubric scores (1-5) 
     for Accuracy, Completeness, Clarity, and Safety.
     """
-    # ── Phase 0: Check for precomputed responses ──────────────────────────────
     first_record = records[0]
     has_precomputed = first_record.get("response_a") and first_record.get("response_b")
 
@@ -460,7 +438,6 @@ def run_pairwise(
         unload_model(m_b)
         save_generated_responses(records, responses_a, responses_b, "eval_responses.json")
 
-    # ── Phase 3: Judging and Rubric Extraction ────────────────────────────────
     print(f"\nJudging {len(records)} pairs via {judge_model}...")
     results = []
     wins_a = wins_b = ties = errors = 0
@@ -470,7 +447,6 @@ def run_pairwise(
     scores_a_total = {m: [] for m in metrics}
     scores_b_total = {m: [] for m in metrics}
 
-    # Regex to find: [Acc: 5, Comp: 4, Clar: 5, Safe: 5]
     score_pattern = r"Response ([AB]):.*?Acc.*?(\d).*?Comp.*?(\d).*?Clar.*?(\d).*?Safe.*?(\d)"
 
     for i, (r, resp_a, resp_b) in enumerate(zip(records, responses_a, responses_b), 1):
@@ -504,7 +480,6 @@ def run_pairwise(
                     target["clar"].append(int(s_clar))
                     target["safe"].append(int(s_safe))
 
-        # Final decision: Both must agree or it is a TIE
         final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
         if final == "A": wins_a += 1
         elif final == "B": wins_b += 1
@@ -629,34 +604,22 @@ def print_absolute_summary(summary: dict, name: str, judge_model: str):
 # ---------------------------------------------------------------------------
 
 def main(
-    # ── Models to evaluate ────────────────────────────────────────────────────
-    model_a: str = "",              # SFT baseline (or only model for absolute)
-    model_b: str = "",              # DPO model    (pairwise only)
-    # ── Free HuggingFace judge ────────────────────────────────────────────────
+    model_a: str = "",              
+    model_b: str = "",        
     judge_model: str = "mistralai/Mistral-7B-Instruct-v0.3",
-    #   Other good free options:
-    #     "HuggingFaceH4/zephyr-7b-beta"
-    #     "meta-llama/Llama-3.1-8B-Instruct"  (requires HF access request)
-    hf_token: str = "",             # or set HF_TOKEN env var
-    # ── Evaluation mode ───────────────────────────────────────────────────────
-    mode: str = "pairwise",        # "pairwise" | "absolute" | "both"
-    # ── Data ─────────────────────────────────────────────────────────────────
+    hf_token: str = "",           
+    mode: str = "pairwise",     
     input_path: str = "mediqa_eval_ready.json",
     output_path: str = "eval_results.json",
     max_samples: int = 50,
-    # ── Quantisation (applied to both local generation models) ────────────────
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
-    # ── Generation ───────────────────────────────────────────────────────────
-    batch_size: int = 8,           # prompts per forward pass (increase if VRAM allows)
-    max_new_tokens: int = 200,     # cap response length; 200 is enough for eval
-    # ── Pairwise option ───────────────────────────────────────────────────────
-    swap_positions: bool = True,   # run each pair twice to reduce positional bias
-    # ── Display labels ────────────────────────────────────────────────────────
+    batch_size: int = 8,         
+    max_new_tokens: int = 200,  
+    swap_positions: bool = True, 
     name_a: str = "Model-A (SFT)",
     name_b: str = "Model-B (DPO)",
 ):
-    # ── Resolve HF token ──────────────────────────────────────────────────────
     token = hf_token or os.environ.get("HF_TOKEN", "")
     if not token:
         sys.exit(
@@ -665,13 +628,11 @@ def main(
             "  Get a free token at: https://huggingface.co/settings/tokens"
         )
 
-    # ── Validate args ─────────────────────────────────────────────────────────
     if not model_a:
         sys.exit("--model_a is required.")
     if mode in ("pairwise", "both") and not model_b:
         sys.exit("--model_b is required for pairwise / both mode.")
 
-    # ── Load data ─────────────────────────────────────────────────────────────
     raw     = Path(input_path).read_text(encoding="utf-8").strip()
     records = json.loads(raw) if raw.startswith("[") else \
               [json.loads(l) for l in raw.splitlines() if l.strip()]
@@ -681,7 +642,6 @@ def main(
 
     all_output = {}
 
-    # ── Pairwise: load A → generate → unload → load B → generate → unload → judge
     if mode in ("pairwise", "both"):
         print(f"\n── Pairwise evaluation (judge: {judge_model}) ──")
         pair_results, pair_summary = run_pairwise(
@@ -697,7 +657,6 @@ def main(
         all_output["pairwise_summary"] = pair_summary
         print_pairwise_summary(pair_summary, name_a, name_b, judge_model)
 
-    # ── Absolute: load A → generate → unload → judge ──────────────────────────
     if mode in ("absolute", "both"):
         print(f"\n── Absolute evaluation (judge: {judge_model}) ──")
         abs_results, abs_summary = run_absolute(
@@ -710,7 +669,6 @@ def main(
         all_output["absolute_summary"] = abs_summary
         print_absolute_summary(abs_summary, name_a, judge_model)
 
-    # ── Save ──────────────────────────────────────────────────────────────────
     Path(output_path).write_text(
         json.dumps(all_output, indent=2, ensure_ascii=False), encoding="utf-8"
     )
