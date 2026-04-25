@@ -1,5 +1,7 @@
-# PyTorch (trl>=0.20 requires torch>=2.6 for FSDPModule)
-torch>=2.6.0
+# PyTorch 2.7.1+cu118 (GPU: --extra-index-url https://download.pytorch.org/whl/cu118)
+torch==2.7.1
+torchvision==0.22.1
+torchaudio==2.7.1
 
 # Hugging Face & training
 transformers>=5.0.0,<6.0.0

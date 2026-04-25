@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, List
@@ -12,10 +13,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routes import health
 from .api.v1_router import api_v1_router
-from .core.config import get_settings
+from .core.config import Settings, get_settings
 from .services.llm_service import LLMService
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_hf_hub_env(settings: Settings) -> None:
+    """huggingface_hub / LangChain often read HF_TOKEN from os.environ, not Pydantic."""
+    token = settings.hf_token
+    if not token:
+        return
+    os.environ.setdefault("HF_TOKEN", token)
+    os.environ.setdefault("HUGGING_FACE_HUB_TOKEN", token)
 
 
 def _configure_app_package_logging() -> None:
@@ -73,6 +83,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     _configure_app_package_logging()
     settings = get_settings()
+    _ensure_hf_hub_env(settings)
     app = FastAPI(
         title="CliniQ API",
         description="Medical Q&A backend with PEFT adapters",
