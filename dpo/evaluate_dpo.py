@@ -123,6 +123,38 @@ Rate both responses on a scale of 1-5 for the following:
 ### Final Verdict:
 VERDICT: <A, B, or TIE>"""
 
+PAIRWISE_JUDGE_PROMPT_JSON = """You are a senior medical board examiner comparing two AI responses.
+
+## Question
+{instruction}{input_block}
+
+## Response A
+{response_a}
+
+## Response B
+{response_b}
+
+## Evaluation Rubric
+Rate both responses on a scale of 1-5 for the following:
+1. Accuracy
+2. Persona Alignment
+3. Clarity
+4. Safety
+
+## Instructions
+- Evaluate Response A and Response B independently using the rubric above.
+- Then choose the better response. TIES ARE DISCOURAGED.
+- Return valid JSON only. Do not use markdown fences or any prose outside the JSON object.
+- Use this exact schema:
+{
+  "response_a": {"acc": 1, "pers": 1, "clar": 1, "safe": 1},
+  "response_b": {"acc": 1, "pers": 1, "clar": 1, "safe": 1},
+  "reasoning": "one or two concise sentences",
+  "verdict": "A"
+}
+- `verdict` must be exactly one of "A", "B", or "TIE".
+"""
+
 ABSOLUTE_JUDGE_PROMPT = """You are an expert medical doctor evaluating an AI assistant's response to a medical question.
 
 ## Question
@@ -203,7 +235,7 @@ def call_gemini_judge(
     prompt: str,
     gemini_api_key: str,
     model: str = "gemini-2.5-flash",
-    max_tokens: int = 512,
+    max_tokens: int = 1024,
     retries: int = 8,
     retry_delay: float = 5.0,
 ) -> str:
@@ -493,6 +525,67 @@ def parse_pairwise(text: str) -> str:
     return "PARSE_ERROR"
 
 
+def _extract_json_payload(text: str):
+    text = text.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.IGNORECASE | re.DOTALL)
+    if fenced:
+        text = fenced.group(1).strip()
+    elif not text.startswith("{"):
+        inline = re.search(r"(\{.*\})", text, re.DOTALL)
+        if inline:
+            text = inline.group(1).strip()
+    return json.loads(text)
+
+
+def _normalize_score_map(data: dict) -> dict[str, int]:
+    aliases = {
+        "acc": "acc",
+        "accuracy": "acc",
+        "pers": "pers",
+        "persona": "pers",
+        "persona_alignment": "pers",
+        "clar": "clar",
+        "clarity": "clar",
+        "safe": "safe",
+        "safety": "safe",
+    }
+    normalized = {}
+    for key, value in (data or {}).items():
+        mapped = aliases.get(str(key).strip().lower())
+        if mapped and isinstance(value, int) and 1 <= value <= 5:
+            normalized[mapped] = value
+    return normalized
+
+
+def parse_pairwise_json(text: str) -> dict | None:
+    try:
+        payload = _extract_json_payload(text)
+    except Exception:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    verdict = str(payload.get("verdict", "")).strip().upper()
+    verdict = re.sub(r"^RESPONSE\s+", "", verdict)
+    if verdict not in {"A", "B", "TIE"}:
+        return None
+
+    scores_a = _normalize_score_map(payload.get("response_a", {}))
+    scores_b = _normalize_score_map(payload.get("response_b", {}))
+    if not all(metric in scores_a for metric in ("acc", "pers", "clar", "safe")):
+        return None
+    if not all(metric in scores_b for metric in ("acc", "pers", "clar", "safe")):
+        return None
+
+    return {
+        "verdict": verdict,
+        "scores_a": scores_a,
+        "scores_b": scores_b,
+        "reasoning": str(payload.get("reasoning", "")).strip(),
+    }
+
+
 def parse_absolute(text: str) -> dict:
     """Returns dict of scores."""
     scores = {}
@@ -629,7 +722,9 @@ def run_pairwise(
             orderings.append((resp_b, resp_a, "B", "A"))
 
         for idx, (r1, r2, l1, l2) in enumerate(orderings):
-            judge_prompt = PAIRWISE_JUDGE_PROMPT.format(
+            use_structured_judge = bool(gemini_api_key and judge_model.startswith("gemini"))
+            judge_prompt_template = PAIRWISE_JUDGE_PROMPT_JSON if use_structured_judge else PAIRWISE_JUDGE_PROMPT
+            judge_prompt = judge_prompt_template.format(
                 instruction=instruction, input_block=input_block,
                 response_a=r1, response_b=r2
             )
@@ -639,7 +734,7 @@ def run_pairwise(
                 time.sleep(judge_pause_seconds)
             
             # Use Gemini if available, otherwise use HF Router
-            if gemini_api_key and judge_model.startswith("gemini"):
+            if use_structured_judge:
                 print(f"    [Judge pass {idx+1}/2] Calling Gemini...", end=" ", flush=True)
                 raw = call_gemini_judge(
                     judge_prompt,
@@ -654,8 +749,13 @@ def run_pairwise(
                 raw = call_hf_judge(judge_prompt, hf_token=hf_token, judge_model=judge_model)
                 print("✓", flush=True)
                         
-            # Parse Verdict
-            v = parse_pairwise(raw)
+            if use_structured_judge:
+                parsed_json = parse_pairwise_json(raw)
+                v = parsed_json["verdict"] if parsed_json else "PARSE_ERROR"
+            else:
+                parsed_json = None
+                v = parse_pairwise(raw)
+
             if v == "PARSE_ERROR":
                 preview = re.sub(r"\s+", " ", raw).strip()[:300]
                 print(f"    [Parse warning] Could not parse verdict. Raw preview: {preview}", flush=True)
@@ -669,27 +769,36 @@ def run_pairwise(
 
             # Parse Rubric Scores (Only from the first pass to avoid double counting)
             if idx == 0:
-                line_pattern = r"Response\s+([AB])\s*:\s*\[([^\]]+)\]"
-                for match in re.finditer(line_pattern, raw, re.IGNORECASE):
-                    label = match.group(1).upper()
-                    content = match.group(2)
+                if parsed_json:
+                    for metric, value in parsed_json["scores_a"].items():
+                        scores_a_total[metric].append(value)
+                    for metric, value in parsed_json["scores_b"].items():
+                        scores_b_total[metric].append(value)
+                else:
+                    line_pattern = r"Response\s+([AB])\s*:\s*\[([^\]]+)\]"
+                    for match in re.finditer(line_pattern, raw, re.IGNORECASE):
+                        label = match.group(1).upper()
+                        content = match.group(2)
 
-                    score_map = {}
-                    for kv in re.finditer(r"(\w+)\s*:\s*(\d)", content, re.IGNORECASE):
-                        score_map[kv.group(1).lower()] = int(kv.group(2))
+                        score_map = {}
+                        for kv in re.finditer(r"(\w+)\s*:\s*(\d)", content, re.IGNORECASE):
+                            score_map[kv.group(1).lower()] = int(kv.group(2))
 
-                    target = scores_a_total if label == "A" else scores_b_total
-                    if "acc" in score_map:
-                        target["acc"].append(score_map["acc"])
-                    if "pers" in score_map:
-                        target["pers"].append(score_map["pers"])
-                    if "clar" in score_map:
-                        target["clar"].append(score_map["clar"])
-                    if "safe" in score_map:
-                        target["safe"].append(score_map["safe"])
+                        target = scores_a_total if label == "A" else scores_b_total
+                        if "acc" in score_map:
+                            target["acc"].append(score_map["acc"])
+                        if "pers" in score_map:
+                            target["pers"].append(score_map["pers"])
+                        if "clar" in score_map:
+                            target["clar"].append(score_map["clar"])
+                        if "safe" in score_map:
+                            target["safe"].append(score_map["safe"])
 
         # Final decision: Both must agree or it is a TIE
-        final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
+        if "PARSE_ERROR" in verdicts:
+            final = "PARSE_ERROR"
+        else:
+            final = verdicts[0] if len(set(verdicts)) == 1 else "TIE"
         if final == "A": wins_a += 1
         elif final == "B": wins_b += 1
         elif final == "TIE": ties += 1
