@@ -1,5 +1,5 @@
-# Based on NVIDIA CUDA base image (CUDA 12.1)
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+# NVIDIA CUDA 11.8 runtime; PyTorch cu118 wheels bundle their own CUDA user libs.
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 # Install Python and pip
 RUN apt-get update && apt-get install -y \
@@ -16,8 +16,8 @@ WORKDIR /app
 # Copy requirements first for better layer caching
 COPY requirements.txt /app/requirements.txt
 
-# Install PyTorch first (CUDA 12.1 version)
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Install PyTorch first (CUDA 11.8 build)
+RUN pip install --no-cache-dir torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118
 
 # Install project dependencies from requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
