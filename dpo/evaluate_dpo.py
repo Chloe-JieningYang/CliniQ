@@ -169,10 +169,10 @@ def call_gemini_judge(
     gemini_api_key: str,
     model: str = "gemini-2.5-flash",
     max_tokens: int = 512,
-    retries: int = 5,
-    retry_delay: float = 10.0,
+    retries: int = 8,
+    retry_delay: float = 5.0,
 ) -> str:
-    """Call Gemini API for judge evaluation"""
+    """Call Gemini API for judge evaluation with robust retry logic"""
     if not gemini_api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set")
     
@@ -198,17 +198,26 @@ def call_gemini_judge(
             return response.text.strip()
         
         except Exception as e:
-            if "429" in str(e) or "rate" in str(e).lower():
-                print(f"⚠️ Rate limited. Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
-                time.sleep(retry_delay * attempt)
-                continue
+            error_str = str(e).lower()
+            is_rate_limit = "429" in str(e) or "rate" in error_str or "quota" in error_str
+            is_timeout = "timeout" in error_str or "deadline" in error_str
             
             if attempt == retries:
                 print(f"❌ Gemini API Error (attempt {attempt}/{retries}): {e}", flush=True)
                 raise e
             
-            print(f"⚠️ Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
-            time.sleep(retry_delay)
+            if is_rate_limit:
+                wait_time = retry_delay * (2 ** (attempt - 1))
+                print(f"⏳ Rate limited/quota exceeded, retry {attempt}/{retries} in {wait_time}s...", flush=True)
+                time.sleep(wait_time)
+            elif is_timeout:
+                wait_time = retry_delay * (2 ** (attempt - 1))
+                print(f"⏳ Timeout, retry {attempt}/{retries} in {wait_time}s...", flush=True)
+                time.sleep(wait_time)
+            else:
+                wait_time = retry_delay * (2 ** (attempt - 1))
+                print(f"⚠️ Error: {str(e)[:100]}, retry {attempt}/{retries} in {wait_time}s...", flush=True)
+                time.sleep(wait_time)
     
     return "ERROR: GEMINI_TIMEOUT"
 
