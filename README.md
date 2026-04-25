@@ -1,214 +1,162 @@
 # CliniQ
 
-Medical Q&A LLM Fine-tuning Project - Using LoRA to fine-tune Llama models
+Medical question-answering stack built on **Llama-3.1-8B-Instruct**: **supervised fine-tuning (SFT)** on MedAlpaca data, **direct preference optimization (DPO)** to separate doctor vs patient personas, optional **retrieval-augmented generation (RAG)** over a curated knowledge mix, and a small **FastAPI + React** runtime for demos.
 
-## Project Overview
+Figures below summarize the **training / alignment pipeline** and the **RAG-serving backend** (source PNGs under `docs/`). Each figure is shown on its own row so both render at full width.
 
-This project uses LoRA (Low-Rank Adaptation) technology to fine-tune Llama models (e.g., Llama-3.1-8B-Instruct) specifically for medical Q&A tasks. The dataset used is `medalpaca/medical_meadow_mediqa`.
+### Training & alignment (high level)
 
-## Requirements
+![Training pipeline](docs/training%20pipeline.png)
 
-- NVIDIA GPU (L4 or higher recommended, at least 8GB VRAM)
-- CUDA 12.1
-- Docker (recommended)
+### RAG backend (runtime)
 
-## Quick Start
+![RAG backend pipeline](docs/rag-backend-pipeline.png)
 
-### 1. Build Docker Image
+---
 
-```bash
-docker build -t cliniq-env .
+## 1. Training pipeline (SFT → DPO → RAG & evaluation)
+
+**Stage A — Supervised fine-tuning (SFT)**  
+- **Data**: MedAlpaca-style medical instruction data.  
+- **Model**: **Llama-3.1-8B-Instruct** with efficient adaptation (e.g. LoRA + 4-bit in this repo).  
+- **Output**: domain-adapted **predictions (1)**.  
+- **Evaluation 1**: **USMLE-style accuracy** (and other automated metrics you configure).
+
+**Stage B — Preference refinement (DPO)**  
+- **Preference data**: pairs built from **doctor-oriented prompts/inputs**, with **preferred = doctor-style answers** and **rejected = patient-style (or weaker) answers** so the model learns who it is speaking *as* and *to*.  
+- **Method**: **Direct Preference Optimization (DPO)** on top of the SFT checkpoint.  
+- **Output**: **predictions (2)** aligned to the intended personas.  
+- **Evaluation**: **LLM-as-judge** (e.g. **Qwen2.5-7B** in the project figure) plus **persona alignment** checks.
+
+**Stage C — Retrieval & final evaluation**  
+- **Corpus**: multiple medical / exam-style sources (e.g. `medical_meadow_*`, health advice, flashcards, **MedGA**, **MMMLU**, **PubMed** / causal QA-style material) combined into a **knowledge base**.  
+- **Index**: embeddings + **FAISS** (or equivalent) for **retrieved context** at query time.  
+- **Inference**: **DPO model + retrieved context** → final answers.  
+- **Final evaluation**: **USMLE accuracy** (and any additional benchmarks you wire in).
+
+Implementation entry points in this repo include `train/finetune_lora.py` (SFT), `dpo/prepare_train_data.py` & `dpo/train_dpo.py` (DPO), `eval/run_hf_model_eval.py` & `dpo/evaluate_dpo.py` (metrics / judge-style eval), and `rag/build_vector.py` (offline index).
+
+---
+
+## 2. RAG backend pipeline (serving)
+
+At **startup**:
+
+1. Load the **DPO-tuned PEFT adapter + tokenizer** (base LLM + LoRA).  
+2. If RAG is enabled: load the **sentence embedding model**, **deserialize the vector index**, and **cache the retriever**.
+
+On **each chat request**:
+
+1. Receive **question**, **audience** (doctor vs patient), and **optional client context**.  
+2. If RAG is on: **similarity search** for top passages; otherwise skip retrieval.  
+3. **Merge** retrieved passages with client context and **build the prompt**.  
+4. **Run the language model** and **return the answer**.
+
+Configured via environment variables (see `.env.example` and `backend/app/core/config.py`). Concept diagram: `docs/rag-backend-pipeline.png` (source: `docs/rag-backend-pipeline.drawio`).
+
+---
+
+## 3. Repository layout (selected)
+
+```
+CliniQ/
+├── docs/
+│   ├── training pipeline.png          # SFT → DPO → RAG figure (this README)
+│   ├── rag-backend-pipeline.png     # Serving figure
+│   ├── rag-backend-pipeline.drawio
+│   └── technical_report.md          # Detailed methods & hyperparameters
+├── train/finetune_lora.py             # SFT (LoRA)
+├── dpo/                               # DPO data prep, training, ablations, judge eval
+├── eval/                              # MediQA / PubMedQA style generation + n-gram & BERT metrics
+├── rag/                               # Offline FAISS index build + retriever helpers
+├── backend/                           # FastAPI service (PEFT + optional RAG)
+├── web/                               # Vite + React UI
+├── requirements.txt
+├── Dockerfile
+└── dpo_model/                         # Default adapter path for the API (when present)
 ```
 
-### 2. Get Hugging Face Token
+---
 
-**Important**: Llama models are gated models and require a Hugging Face Token for access.
+## 4. Requirements
 
-1. **Visit Hugging Face Website**:
-   - Register/Login: https://huggingface.co/join
-   - Visit Token settings: https://huggingface.co/settings/tokens
+- **NVIDIA GPU** recommended for training and for GPU RAG embeddings (CPU fallback exists for parts of RAG).  
+- **CUDA / PyTorch**: this repo targets **PyTorch 2.7.1 + cu118** wheels in `requirements.txt`; match your **driver** to the CUDA user runtime you install.  
+- **Hugging Face token** for gated models (Llama, etc.): set `HF_TOKEN` in `.env` (see `.env.example`).  
+- **Docker** (optional): `Dockerfile` installs Python 3.10 + CUDA 11.8 runtime + pinned torch.
 
-2. **Create Token**:
-   - Click "New token"
-   - Select "Read" permission (sufficient for downloading models)
-   - Copy the generated token (format: `hf_xxxxxxxxxxxxx`)
+---
 
-3. **Request Model Access**:
-   - Visit the model page you want to use (e.g., https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
-   - Click "Agree and access repository" to accept terms
-   - Wait for approval (usually within minutes)
+## 5. Quick start (minimal)
 
-### 3. Configure Token
+### Hugging Face access
 
-You can set the token in three ways (in order of priority):
-
-**Method 1: Using .env file (Recommended)**
-```bash
-# Create .env file in project root
-echo "HF_TOKEN=your_token_here" > .env
-```
-
-**Method 2: Environment variable**
-```bash
-export HF_TOKEN=your_token_here
-```
-
-**Method 3: Pass when starting Docker container**
-```bash
-docker run -e HF_TOKEN=your_token_here ...
-```
-
-### 4. Start Container
+Create `.env` in the repo root:
 
 ```bash
-# If using .env file, it will be automatically loaded
-docker run --gpus all -it --rm -v $(pwd):/app cliniq-env bash
-
-# Or pass token directly
-docker run --gpus all -it --rm \
-  -v $(pwd):/app \
-  -e HF_TOKEN=your_token_here \
-  cliniq-env bash
+cp .env.example .env
+# edit HF_TOKEN=...
 ```
 
-### 5. Run Fine-tuning
+### Python environment
 
-Inside the container (from project root `/app`), execute:
+Use a virtual environment, install PyTorch **with the cu118 index** if you need GPU, then the rest:
+
+```bash
+pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements.txt
+```
+
+### SFT
 
 ```bash
 python train/finetune_lora.py
 ```
 
-The training process will:
-- Automatically download the specified Llama model (configured in `train/finetune_lora.py`)
-- Load `medalpaca/medical_meadow_mediqa` dataset
-- Perform efficient fine-tuning using 4-bit quantization + LoRA
-- Save model to `medical_lora_output/final_model` (at project root)
+Checkpoints default under `medical_lora_output/` (see script for `output_dir`).
 
-### 6. Inference with Fine-tuned Model
+### DPO (after SFT adapter exists)
 
 ```bash
-python eval/inference.py [model_path]
+python dpo/prepare_train_data.py   # build preference JSON (modes documented in dpo/)
+python dpo/train_dpo.py            # TRL DPOTrainer on chosen pairs
 ```
 
-If no path is specified, defaults to `medical_lora_output/final_model` (relative to project root).
-
-### 7. Evaluation (BERTScore, BLEU, ROUGE)
-
-Use `eval/run_hf_model_eval.py` on the same validation split as training. Supports any Hugging Face model or local LoRA checkpoint:
+### Evaluation
 
 ```bash
-# Hugging Face base model (e.g. 4-bit to save VRAM)
-python eval/run_hf_model_eval.py --model_id meta-llama/Llama-3.1-8B-Instruct --load_in_4bit
-
-# Local fine-tuned LoRA model
-python eval/run_hf_model_eval.py --model_id medical_lora_output/final_model --peft
+python eval/run_hf_model_eval.py --model_id <hf_id_or_local_path> [--peft] [--load_in_4bit]
+python dpo/evaluate_dpo.py         # LLM-as-judge style comparisons when configured
 ```
 
-Optional: `--max_eval_samples 200` for a quick run; `--use_cache` to skip generation and only recompute metrics. Results are saved under `eval/eval_results_{model_name}.json`.
+### Offline RAG index
 
-## Configuration
-
-### Training Parameters
-
-You can modify the following parameters in `train/finetune_lora.py`:
-
-- `lora_r`: LoRA rank (default: 8)
-- `lora_alpha`: LoRA scaling factor (default: 16)
-- `num_train_epochs`: Number of training epochs (default: 3)
-- `per_device_train_batch_size`: Batch size (default: 4)
-- `learning_rate`: Learning rate (default: 2e-4)
-- `max_seq_length`: Maximum sequence length (default: 512)
-
-### Memory Optimization
-
-- Uses 4-bit quantization (NF4)
-- Uses 8-bit optimizer (paged_adamw_8bit)
-- Uses LoRA to train only a small number of parameters
-
-On L4 GPU (24GB), fine-tuning with 4-bit quantization typically requires:
-- Small models (1-3B): ~4-6GB VRAM
-- Medium models (7-13B): ~8-12GB VRAM
-- Large models (30B+): May require multiple GPUs or larger VRAM
-
-## Project Structure
-
-```
-cliniQ/
-├── Dockerfile              # Docker environment configuration
-├── requirements.txt        # Python dependencies
-├── README.md               # Project documentation
-├── .env                    # Environment variables (create from .env.example)
-├── .env.example            # Example environment file template
-├── train/                  # Training scripts
-│   └── finetune_lora.py    # LoRA fine-tuning main script
-├── eval/                   # Evaluation & inference scripts
-│   ├── inference.py       # Inference script
-│   ├── run_hf_model_eval.py  # BERTScore/BLEU/ROUGE evaluation (HF or local model)
-│   └── test_model.py       # Quick test with sample questions
-└── medical_lora_output/    # Training output (at project root, generated after training)
-    └── final_model/        # Final model save location
+```bash
+python rag/build_vector.py         # see rag/README.md for corpus paths & env
 ```
 
-## Important Notes
+### API + UI (optional)
 
-1. **Hugging Face Token (Required)**:
-   - Llama models are gated models, **must** provide Token to download
-   - **Recommended**: Create `.env` file with `HF_TOKEN=your_token_here`
-   - Alternative: Set environment variable `export HF_TOKEN=your_token_here`
-   - Or pass when starting container: `docker run -e HF_TOKEN=your_token_here ...`
-   - If Token is not set, script will prompt and provide guidance
-   - **Note**: `.env` file is automatically ignored by git (see `.gitignore`)
+```bash
+# Terminal A — from repo root, with venv active
+cd backend && uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
-2. **Dataset Format**: `medical_meadow_mediqa` dataset should contain `instruction` and `output` fields
+# Terminal B
+cd web && npm install && npm run dev
+```
 
-3. **Model Saving**: After training completes, model is saved in `medical_lora_output/final_model/` (at project root), including:
-   - LoRA adapter weights
-   - Tokenizer files
-   - Configuration files
+---
 
-## Monitoring Training with TensorBoard
+## 6. Further reading
 
-During training, loss metrics are automatically logged to TensorBoard. To visualize training progress:
+- **`docs/technical_report.md`** — bilingual technical write-up (SFT / DPO / ablations / metrics).  
+- **`final report.pdf`** — course / project narrative (open locally; PDF text extraction is not bundled in-repo).  
+- **DPO & TRL**: [Direct Preference Optimization paper](https://huggingface.co/papers/2305.18290), [TRL docs](https://huggingface.co/docs/trl).
 
-1. **Start TensorBoard** (in a separate terminal or after training):
-   ```bash
-   tensorboard --logdir ./medical_lora_output/logs
-   ```
+---
 
-2. **Access TensorBoard**:
-   - Open your browser and go to: `http://localhost:6006`
-   - You'll see real-time plots of:
-     - Training loss
-     - Validation loss
-     - Learning rate
-     - Other training metrics
+## 7. Troubleshooting (short)
 
-3. **From Docker container**:
-   ```bash
-   # Inside container or from host
-   tensorboard --logdir /app/medical_lora_output/logs --host 0.0.0.0 --port 6006
-   ```
-   Then access via `http://your-server-ip:6006`
-
-## Troubleshooting
-
-### CUDA Related Errors
-- Ensure using `--gpus all` when starting container
-- Check if NVIDIA driver version supports CUDA 12.1
-
-### Out of Memory
-- Reduce `per_device_train_batch_size`
-- Increase `gradient_accumulation_steps`
-- Reduce `max_seq_length`
-
-### Model Download Failed
-- Check network connection
-- Confirm Hugging Face Token is set (if required)
-
-## Reference Resources
-
-- [PEFT Documentation](https://huggingface.co/docs/peft)
-- [TRL Documentation](https://huggingface.co/docs/trl)
-- [Llama Models](https://huggingface.co/meta-llama)
-- [Medical Meadow Dataset](https://huggingface.co/datasets/medalpaca/medical_meadow_mediqa)
+- **CUDA driver vs wheel mismatch**: install a PyTorch build that matches your driver, or upgrade the host driver.  
+- **OOM**: lower batch size / sequence length, enable 4-bit loading where supported.  
+- **RAG / Triton compile errors on API startup**: install Python dev headers (`Python.h`) on the host if bitsandbytes/triton JIT is triggered.
