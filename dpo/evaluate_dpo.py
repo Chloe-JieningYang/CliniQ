@@ -146,12 +146,12 @@ Rate both responses on a scale of 1-5 for the following:
 - Then choose the better response. TIES ARE DISCOURAGED.
 - Return valid JSON only. Do not use markdown fences or any prose outside the JSON object.
 - Use this exact schema:
-{
-  "response_a": {"acc": 1, "pers": 1, "clar": 1, "safe": 1},
-  "response_b": {"acc": 1, "pers": 1, "clar": 1, "safe": 1},
+{{
+  "response_a": {{"acc": 1, "pers": 1, "clar": 1, "safe": 1}},
+  "response_b": {{"acc": 1, "pers": 1, "clar": 1, "safe": 1}},
   "reasoning": "one or two concise sentences",
   "verdict": "A"
-}
+}}
 - `verdict` must be exactly one of "A", "B", or "TIE".
 """
 
