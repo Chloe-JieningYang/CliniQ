@@ -2,15 +2,18 @@
 
 Medical question-answering stack built on **Llama-3.1-8B-Instruct**: **supervised fine-tuning (SFT)** on MedAlpaca data, **direct preference optimization (DPO)** to separate doctor vs patient personas, optional **retrieval-augmented generation (RAG)** over a curated knowledge mix, and a small **FastAPI + React** runtime for demos.
 
-Figures below summarize the **training / alignment pipeline** and the **RAG-serving backend** (source PNGs under `docs/`). Each figure is shown on its own row so both render at full width.
+**Pipeline（文字摘要，与汇报材料一致）**
 
 ### Training & alignment (high level)
 
-![Training pipeline](docs/training%20pipeline.png)
+- **SFT**: MedAlpaca-style supervision on **Llama-3.1-8B-Instruct** → **predictions (1)** → **Evaluation 1** (e.g. **USMLE-style accuracy**).  
+- **DPO**: preference learning so outputs match **doctor vs patient** personas; judge model (e.g. **Qwen2.5-7B**) for **LLM-as-Judge** and **persona alignment** on **predictions (2)**.  
+- **RAG + final eval**: multi-source **knowledge base** → **FAISS** retrieval → combine with model → **USMLE-style** (and other) final checks.
 
 ### RAG backend (runtime)
 
-![RAG backend pipeline](docs/rag-backend-pipeline.png)
+- **Startup**: load **DPO-tuned PEFT + tokenizer**; if RAG on, load **embeddings + vector index** and cache retriever.  
+- **Per request**: **question + audience + optional client context** → **top‑k similarity search** (skip if RAG off) → **merge + prompt** → **generate answer**.
 
 ---
 
@@ -52,7 +55,7 @@ On **each chat request**:
 3. **Merge** retrieved passages with client context and **build the prompt**.  
 4. **Run the language model** and **return the answer**.
 
-Configured via environment variables (see `.env.example` and `backend/app/core/config.py`). Concept diagram: `docs/rag-backend-pipeline.png` (source: `docs/rag-backend-pipeline.drawio`).
+Configured via environment variables (see `.env.example` and `backend/app/core/config.py`). Optional editable diagram source: `docs/rag-backend-pipeline.drawio`.
 
 ---
 
@@ -61,10 +64,8 @@ Configured via environment variables (see `.env.example` and `backend/app/core/c
 ```
 CliniQ/
 ├── docs/
-│   ├── training pipeline.png          # SFT → DPO → RAG figure (this README)
-│   ├── rag-backend-pipeline.png     # Serving figure
-│   ├── rag-backend-pipeline.drawio
-│   └── technical_report.md          # Detailed methods & hyperparameters
+│   ├── rag-backend-pipeline.drawio   # Optional diagram source
+│   └── technical_report.md           # Detailed methods & hyperparameters
 ├── train/finetune_lora.py             # SFT (LoRA)
 ├── dpo/                               # DPO data prep, training, ablations, judge eval
 ├── eval/                              # MediQA / PubMedQA style generation + n-gram & BERT metrics

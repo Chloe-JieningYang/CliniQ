@@ -29,7 +29,8 @@ CliniQ is a medical question-answering fine-tuning project built on Meta's Llama
 | 数据集 / Dataset | 用途 / Usage | 规模 / Size |
 |--------|------|------|
 | medalpaca/medical_meadow_mediqa | SFT 训练 + 自动评估 / SFT training + automated eval | ~2,200 |
-| medalpaca/medical_meadow_wikidoc_patient_information | DPO 偏好对构建 / DPO pair construction | ~5,900 |
+| medalpaca/medical_meadow_wikidoc（WikiDoc 专业叙述 / professional） | 双语气 DPO 数据源 A / Dual-tone DPO source **A** | 视对齐后规模 / size after alignment |
+| medalpaca/medical_meadow_wikidoc_patient_information（患者向 QA） | 双语气 DPO 数据源 B / Dual-tone DPO source **B** | ~5,900（原始规模 / raw） |
 | qiaojin/PubMedQA | 额外评估 / Additional eval (optional) | ~200 |
 
 ---
@@ -48,7 +49,8 @@ CliniQ is a medical question-answering fine-tuning project built on Meta's Llama
 ┌─────────────────────────────────────────────────────────────────────┐
 │  阶段 2 / Stage 2: DPO 偏好对构建 / Preference Pair Construction     │
 │  dpo/prepare_train_data.py                                          │
-│  三种模式 / Three modes: rule / model / model-rejected              │
+│  主叙事：双语气交叉构造（WikiDoc A × 患者语料 B）/ Dual-tone cross-style │
+│  亦支持 / Also: rule / model / model-rejected 等消融或补充构造        │
 │  输出 / Output: dpo/train_set/dpo_pairs_*.json                      │
 └──────────────────────────────┬──────────────────────────────────────┘
                                │
@@ -69,6 +71,8 @@ CliniQ is a medical question-answering fine-tuning project built on Meta's Llama
 │     Pairwise (SFT vs DPO) + Absolute                               │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+**与材料对照 / Narrative alignment**：公开汇报材料中的训练总览可概括为——**SFT（MedAlpaca / MediQA）→ DPO（含双语气偏好，见 §4.0）→ 可选 RAG 索引与检索 → 自动指标 + LLM-as-Judge + USMLE 类评估**；在线服务侧则概括为 **启动时加载 DPO PEFT 与可选 RAG，请求路径为「收题 → 相似检索 → 合并 prompt → 解码返回答」**。
 
 ---
 
@@ -131,7 +135,39 @@ Llama-3.1-8B uses GQA with 8 KV heads (not 32).
 
 ## 4. 阶段 2：DPO 偏好对构建 / Stage 2: Preference Pair Construction
 
+### 4.0 双语气 DPO（交叉构造 / Dual-tone cross-style）
+
+**目标 / Goal**：让同一基座在 **面向医生** 与 **面向患者** 两种场景下采用不同语气——医生侧偏专业术语与临床信息密度；患者侧偏保守、安全、清晰与共情表达。
+
+**交叉偏好对构造 / Cross-style preference pairs**（数据源 **A** = WikiDoc 专业叙述 `medical_meadow_wikidoc`，**B** = 患者向说明 `medical_meadow_wikidoc_patient_information`；A 与 B 的 **instruction/input 经语义对齐**）：
+
+| 场景 / Scenario | Prompt 前缀 / Prefix | Prompt 来源 / Prompt | Chosen | Rejected |
+|-----------------|---------------------|----------------------|--------|----------|
+| **Doctor** 医生视角 | *I am a doctor.* | **A** 的 input | **A** 的回答 / A’s output | **B** 的回答 / B’s output |
+| **Patient** 患者视角 | *I am a patient.* | **B** 的 input | **B** 的回答 / B’s output | **A** 的回答 / A’s output |
+
+即：在医生设定下 **偏好专业语料 A、拒绝患者口吻 B**；在患者设定下 **偏好患者语料 B、拒绝专业口吻 A**，从而形成 **语气与受众** 上的对比，而非单一语料内的随机退化。
+
+**语料与对齐 / Corpus & alignment**
+
+- **A（专业）**：来自 WikiDoc「活教材」式叙述；可将段落标题改写为问句（例如使用 GPT-3.5-Turbo 类模型辅助），需注意自动改写可能带来 **~30%** 左右质量不稳样本，需后验过滤。  
+- **B（患者向）**：来自 Patient Information，本身多为 **问答式、偏通俗与共情**。  
+- **语义匹配**：使用 **SentenceTransformers `all-MiniLM-L6-v2`** 对问题进行编码，以 **余弦相似度 ≥ 0.75** 阈值对齐 A 与 B 的条目。
+
+**清洗与 persona 校正 / Cleaning & persona-aware swap**
+
+- 剔除 **chosen/rejected 完全相同**、过短截断、含 **模板占位符** 等样本。  
+- 使用 **临床术语关键词表** 检测「患者条目的回答反而比专业条目更术语化」等 **错配**，必要时 **交换 chosen/rejected** 以保证与 persona 一致。
+
+**训练样本展开 / Example expansion**：每一对成功对齐的 (A, B) 可派生 **两条** DPO 样本（上表医生行 + 患者行各一条），且 **chosen 与 rejected 始终来自不同数据源**，以保证对比沿 **语体/受众** 维度展开。
+
+---
+
 ### 4.1 三种数据构建模式 / Three Data Construction Modes
+
+以下模式由 `dpo/prepare_train_data.py` 实现，常用于 **消融、补充数据或与双语气流水线并行**；与 §4.0 的 WikiDoc 交叉构造在动机上互补（§4.0 强调 **受众语气**，§4.1 强调 **质量退化 / 模型采样**）。
+
+The following modes are implemented in `dpo/prepare_train_data.py` for **ablations, extra pairs, or parallel use** alongside the dual-tone WikiDoc pipeline (§4.0 stresses **audience tone**; §4.1 stresses **degradation / sampling**).
 
 #### 模式 1 / Mode 1: Rule-based（基于规则退化 / Deterministic Degradation）
 
@@ -192,6 +228,7 @@ Combines high-quality human annotations for chosen with realistic model failures
 | 有效 Batch / Effective batch | 64 |
 | Epochs | 1 |
 | 最大长度 / Max length | 1024 |
+| 训练精度 / Precision | bf16 |
 | 量化 / Quantization | 4-bit NF4 |
 
 ### 5.2 Prompt 格式 / Prompt Format
@@ -328,7 +365,7 @@ Rule-based data teaches shallow features ("don't truncate," "don't hedge") rathe
 |------|------|
 | GPU | NVIDIA L4, 23GB VRAM |
 | 系统内存 / RAM | 15GB |
-| 环境 / Runtime | Docker (nvidia/cuda:12.1.0-runtime-ubuntu22.04) |
+| 环境 / Runtime | Docker (nvidia/cuda:11.8.0-runtime-ubuntu22.04；与 §1.1 一致 / matches §1.1) |
 | SFT 训练 / training | ~2-3 小时 / hours (3 epochs) |
 | DPO 数据生成 / data gen | ~30-60 分钟 / min (1,000 samples, 4-bit) |
 | DPO 训练 / training | ~20-30 分钟 / min (1 epoch) |
@@ -339,6 +376,9 @@ Rule-based data teaches shallow features ("don't truncate," "don't hedge") rathe
 
 ```
 CliniQ/
+├── docs/
+│   ├── technical_report.md             # 本文件 / this document
+│   └── rag-backend-pipeline.drawio    # 可选：服务流程图可编辑源 / optional editable serving diagram
 ├── Dockerfile                          # Docker 环境 / environment
 ├── requirements.txt                    # Python 依赖 / dependencies
 ├── .env                                # HuggingFace Token
