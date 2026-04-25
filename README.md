@@ -2,8 +2,6 @@
 
 Medical question-answering stack built on **Llama-3.1-8B-Instruct**: **supervised fine-tuning (SFT)** on MedAlpaca data, **direct preference optimization (DPO)** to separate doctor vs patient personas, optional **retrieval-augmented generation (RAG)** over a curated knowledge mix, and a small **FastAPI + React** runtime for demos.
 
-**Pipeline（文字摘要，与汇报材料一致）**
-
 ### Training & alignment (high level)
 
 - **SFT**: MedAlpaca-style supervision on **Llama-3.1-8B-Instruct** → **predictions (1)** → **Evaluation 1** (e.g. **USMLE-style accuracy**).  
