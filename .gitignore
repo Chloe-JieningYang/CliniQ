@@ -36,3 +36,13 @@ logs/
 # Dataset cache
 .cache/
 .huggingface/
+
+# Rag documents
+rag/documents/
+rag/data
+
+# Mac OS
+.DS_Store
+# Frontend
+web/node_modules/
+web/dist/

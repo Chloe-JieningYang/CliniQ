@@ -40,6 +40,29 @@ def load_model(model_path=None):
     print("Model loaded successfully!")
     return model, tokenizer
 
+def load_rag_retriever(index_path: str = "rag/faiss_index"):
+    from langchain_community.vectorstores import FAISS
+    from langchain_huggingface import HuggingFaceEmbeddings
+    import faiss
+    import time
+    embedding_model = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": "mps"} if torch.backends.mps.is_available() else {"device": "cuda"} if torch.cuda.is_available() else None
+    )
+    start_time = time.time()
+    vectorstore = FAISS.load_local(index_path, embedding_model, allow_dangerous_deserialization=True)
+
+    try:
+        cpu_index = vectorstore.index
+        res = faiss.StandardGpuResources()
+        gpu_index = faiss.index_cpu_to_gpu(res, 0, cpu_index)
+        vectorstore.index = gpu_index
+        print("RAG FAISS index on GPU")
+    except Exception as exc:  # noqa: BLE001 — faiss-cpu builds have no GPU API
+        print(f"RAG FAISS kept on CPU (GPU index unavailable): {exc}")
+
+    print(f"Rag retriever loaded successfully after {time.time() - start_time:.2f} seconds!")
+    return vectorstore
 
 def generate_answer(model, tokenizer, question, context=None, max_new_tokens=256, temperature=0.3, top_p=0.95):
     """Generate medical Q&A answer using Llama 3 chat format"""
@@ -124,12 +147,16 @@ def generate_answer(model, tokenizer, question, context=None, max_new_tokens=256
 
 def main():
     import sys
+    from rag.retriever import rag_retrieval
     
     # Model path
     model_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MODEL_PATH
     
     # Load model
     model, tokenizer = load_model(model_path)
+    
+    # Load rag retriever
+    rag_retriever = load_rag_retriever()
     
     print("\n" + "=" * 60)
     print("Medical Q&A Inference System")
@@ -146,9 +173,13 @@ def main():
         
         if not question:
             continue
-        
+
+        print(f"Retrieving context from RAG...")
+        context = rag_retrieval(rag_retriever, question)
+        print(f"\nContext: {context}")
+
         print("\nGenerating answer...")
-        answer = generate_answer(model, tokenizer, question)
+        answer = generate_answer(model, tokenizer, question, context=context)
         print(f"\nAnswer: {answer}")
 
 
