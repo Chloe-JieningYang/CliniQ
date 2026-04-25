@@ -106,6 +106,12 @@ Rate both responses on a scale of 1-5 for the following:
 - Evaluate Response A and Response B independently using the rubric above.
 - After scoring, compare them. TIES ARE DISCOURAGED.
 - Provide a brief justification focusing on the most critical medical difference.
+- Return plain text only.
+- The final line must be exactly one of:
+  VERDICT: A
+  VERDICT: B
+  VERDICT: TIE
+- Do not write "Response A", "Model A", or any extra words on the verdict line.
 
 ### Scorecard
 - Response A: [Acc: X, Pers: X, Clar: X, Safe: X]
@@ -164,6 +170,35 @@ try:
 except ImportError:
     genai = None
 
+
+def _extract_retry_seconds(text: str) -> float | None:
+    match = re.search(r"retry in\s+([0-9]+(?:\.[0-9]+)?)s", text, re.IGNORECASE)
+    if match:
+        return float(match.group(1))
+    match = re.search(r"retry_delay\s*\{[^}]*seconds:\s*([0-9]+)", text, re.IGNORECASE | re.DOTALL)
+    if match:
+        return float(match.group(1))
+    return None
+
+
+def _response_text(response) -> str:
+    text = getattr(response, "text", None)
+    if text:
+        return text.strip()
+
+    pieces = []
+    for candidate in getattr(response, "candidates", []) or []:
+        content = getattr(candidate, "content", None)
+        for part in getattr(content, "parts", []) or []:
+            part_text = getattr(part, "text", None)
+            if part_text:
+                pieces.append(part_text)
+
+    if pieces:
+        return "\n".join(pieces).strip()
+
+    return str(response)
+
 def call_gemini_judge(
     prompt: str,
     gemini_api_key: str,
@@ -172,7 +207,7 @@ def call_gemini_judge(
     retries: int = 8,
     retry_delay: float = 5.0,
 ) -> str:
-    """Call Gemini API for judge evaluation with robust retry logic"""
+    """Call Gemini API for judge evaluation"""
     if not gemini_api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set")
     
@@ -185,9 +220,10 @@ def call_gemini_judge(
     if not model.startswith("models/"):
         model = f"models/{model}"
     
+    client = genai.GenerativeModel(model)
+
     for attempt in range(1, retries + 1):
         try:
-            client = genai.GenerativeModel(model)
             response = client.generate_content(
                 prompt,
                 generation_config={
@@ -195,29 +231,25 @@ def call_gemini_judge(
                     "temperature": 0.01,
                 }
             )
-            return response.text.strip()
+            return _response_text(response)
         
         except Exception as e:
-            error_str = str(e).lower()
-            is_rate_limit = "429" in str(e) or "rate" in error_str or "quota" in error_str
-            is_timeout = "timeout" in error_str or "deadline" in error_str
+            err_text = str(e)
+            if "429" in err_text or "rate" in err_text.lower() or "quota" in err_text.lower():
+                wait_time = _extract_retry_seconds(err_text) or (retry_delay * attempt)
+                print(
+                    f"⏳ Rate limited/quota exceeded, retry {attempt}/{retries} in {wait_time:.1f}s...",
+                    flush=True,
+                )
+                time.sleep(wait_time)
+                continue
             
             if attempt == retries:
                 print(f"❌ Gemini API Error (attempt {attempt}/{retries}): {e}", flush=True)
                 raise e
             
-            if is_rate_limit:
-                wait_time = retry_delay * (2 ** (attempt - 1))
-                print(f"⏳ Rate limited/quota exceeded, retry {attempt}/{retries} in {wait_time}s...", flush=True)
-                time.sleep(wait_time)
-            elif is_timeout:
-                wait_time = retry_delay * (2 ** (attempt - 1))
-                print(f"⏳ Timeout, retry {attempt}/{retries} in {wait_time}s...", flush=True)
-                time.sleep(wait_time)
-            else:
-                wait_time = retry_delay * (2 ** (attempt - 1))
-                print(f"⚠️ Error: {str(e)[:100]}, retry {attempt}/{retries} in {wait_time}s...", flush=True)
-                time.sleep(wait_time)
+            print(f"⚠️ Retry {attempt}/{retries} in {retry_delay}s...", flush=True)
+            time.sleep(retry_delay)
     
     return "ERROR: GEMINI_TIMEOUT"
 
@@ -426,13 +458,38 @@ def unload_model(model) -> None:
 
 def parse_pairwise(text: str) -> str:
     """Returns 'A', 'B', or 'TIE'."""
-    match = re.search(r"VERDICT\s*:\s*(A|B|TIE)", text, re.IGNORECASE)
-    if match:
-        return match.group(1).upper()
-    for token in reversed(text.split()):
-        t = token.strip("*.,\n").upper()
-        if t in ("A", "B", "TIE"):
-            return t
+    patterns = [
+        r"\bVERDICT\s*:\s*(?:RESPONSE\s+)?(A|B|TIE)\b",
+        r"\bFINAL\s+VERDICT\s*:\s*(?:RESPONSE\s+)?(A|B|TIE)\b",
+        r"\b(?:WINNER|PREFERRED\s+RESPONSE|BETTER\s+RESPONSE|CHOSEN\s+RESPONSE)\s*:\s*(?:RESPONSE\s+)?(A|B|TIE)\b",
+        r"\b(?:A\s+IS\s+BETTER|RESPONSE\s+A\s+IS\s+BETTER)\b",
+        r"\b(?:B\s+IS\s+BETTER|RESPONSE\s+B\s+IS\s+BETTER)\b",
+    ]
+    upper = text.upper()
+    for pattern in patterns:
+        match = re.search(pattern, upper, re.IGNORECASE)
+        if match:
+            if match.lastindex:
+                return match.group(1).upper()
+            if "A IS BETTER" in match.group(0):
+                return "A"
+            if "B IS BETTER" in match.group(0):
+                return "B"
+
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    for line in reversed(lines[-8:]):
+        normalized = re.sub(r"\s+", " ", line.upper().replace("*", ""))
+        if any(key in normalized for key in ("VERDICT", "WINNER", "PREFERRED", "BETTER", "CHOSEN", "FINAL")):
+            match = re.search(r"\b(?:RESPONSE\s+)?(A|B|TIE)\b", normalized)
+            if match:
+                return match.group(1).upper()
+
+    for line in reversed(lines[-3:]):
+        normalized = line.strip().upper().replace("*", "")
+        match = re.fullmatch(r"(?:RESPONSE\s+)?(A|B|TIE)[\s\.\!\)]*", normalized)
+        if match:
+            return match.group(1).upper()
+
     return "PARSE_ERROR"
 
 
@@ -520,6 +577,9 @@ def run_pairwise(
     batch_size: int = 8,
     max_new_tokens: int = 200,
     gemini_api_key: str = None,
+    gemini_retries: int = 8,
+    gemini_retry_delay: float = 5.0,
+    judge_pause_seconds: float = 0.0,
 ):
     """
     Runs pairwise evaluation and extracts rubric scores (1-5) 
@@ -563,6 +623,7 @@ def run_pairwise(
         input_block = f"\n\n**Context:** {input_text}" if input_text.strip() else ""
 
         verdicts = []
+        judge_passes = []
         orderings = [(resp_a, resp_b, "A", "B")]
         if swap_positions:
             orderings.append((resp_b, resp_a, "B", "A"))
@@ -572,11 +633,21 @@ def run_pairwise(
                 instruction=instruction, input_block=input_block,
                 response_a=r1, response_b=r2
             )
+
+            if judge_pause_seconds > 0 and (i > 1 or idx > 0):
+                print(f"    [Judge throttle] Sleeping {judge_pause_seconds:.1f}s...", flush=True)
+                time.sleep(judge_pause_seconds)
             
             # Use Gemini if available, otherwise use HF Router
             if gemini_api_key and judge_model.startswith("gemini"):
                 print(f"    [Judge pass {idx+1}/2] Calling Gemini...", end=" ", flush=True)
-                raw = call_gemini_judge(judge_prompt, gemini_api_key=gemini_api_key, model=judge_model)
+                raw = call_gemini_judge(
+                    judge_prompt,
+                    gemini_api_key=gemini_api_key,
+                    model=judge_model,
+                    retries=gemini_retries,
+                    retry_delay=gemini_retry_delay,
+                )
                 print("✓", flush=True)
             else:
                 print(f"    [Judge pass {idx+1}/2] Calling {judge_model}...", end=" ", flush=True)
@@ -585,7 +656,16 @@ def run_pairwise(
                         
             # Parse Verdict
             v = parse_pairwise(raw)
+            if v == "PARSE_ERROR":
+                preview = re.sub(r"\s+", " ", raw).strip()[:300]
+                print(f"    [Parse warning] Could not parse verdict. Raw preview: {preview}", flush=True)
             verdicts.append(l1 if v == "A" else l2 if v == "B" else v)
+            judge_passes.append({
+                "pass_index": idx + 1,
+                "presented_labels": {"response_a": l1, "response_b": l2},
+                "parsed_verdict": v,
+                "raw_output": raw,
+            })
 
             # Parse Rubric Scores (Only from the first pass to avoid double counting)
             if idx == 0:
@@ -620,7 +700,8 @@ def run_pairwise(
             "response_a": resp_a,
             "response_b": resp_b,
             "verdicts": verdicts,
-            "final": final
+            "final": final,
+            "judge_outputs": judge_passes,
         })
         print(f"  [{i}/{len(records)}] {final} | A:{wins_a} B:{wins_b} TIE:{ties}", flush=True)
 
@@ -632,6 +713,7 @@ def run_pairwise(
         "model_a_win_%": round(100 * wins_a / total, 1),
         "model_b_win_%": round(100 * wins_b / total, 1),
         "tie_%": round(100 * ties / total, 1),
+        "parse_errors": errors,
         # Calculate mean rubric scores
         "scores_a": {m: round(sum(v)/len(v), 2) if v else 0 for m, v in scores_a_total.items()},
         "scores_b": {m: round(sum(v)/len(v), 2) if v else 0 for m, v in scores_b_total.items()}
@@ -766,6 +848,9 @@ def main(
     max_new_tokens: int = 200,     # cap response length; 200 is enough for eval
     # ── Pairwise option ───────────────────────────────────────────────────────
     swap_positions: bool = True,   # run each pair twice to reduce positional bias
+    judge_pause_seconds: float = 0.0,
+    gemini_retries: int = 8,
+    gemini_retry_delay: float = 5.0,
     # ── Display labels ────────────────────────────────────────────────────────
     name_a: str = "Model-A (SFT)",
     name_b: str = "Model-B (DPO)",
@@ -817,6 +902,9 @@ def main(
             batch_size=batch_size,
             max_new_tokens=max_new_tokens,
             gemini_api_key=gemini_key,
+            gemini_retries=gemini_retries,
+            gemini_retry_delay=gemini_retry_delay,
+            judge_pause_seconds=judge_pause_seconds,
         )
         all_output["pairwise_results"] = pair_results
         all_output["pairwise_summary"] = pair_summary
